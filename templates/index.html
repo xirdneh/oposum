@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+
+{% block main_content %} 
+    {% if request.user.is_authenticated %}
+        <h2> Bienvenido {{request.user.username}}! </h2>
+        <p>Estas son las cosas que peudes Agregar, Borrar o Editar</p>
+        <ul>
+            <li><a href="/products/add-products">Claves Articulos</a></li>
+            <li><a href="/products/add-category">Categoria</a></li>
+            <li><a href="/products/add-provider">Proveedores</a></li>
+            <li><a href="/pos/sales">Ventas</a></li>
+            <div id="user_branches"</div>
+            {{ request.session.branch_selected }}
+        </ul>
+    {% else %}
+        <form action="/login/" method="post" name="login_form" class="login_form">
+            {% csrf_token %}
+            <div class="form-group">
+              <input type="text" placeholder="Usuario" class="form-control" name="username">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Contrase&ntilde;a" class="form-control" name="password">
+            </div>
+            <button type="submit" class="btn btn-success">Entrar</button>
+        </form>
+        <p style="color:red;"> {{message}} </p>
+    {% endif %}
+    {% addtoblock "js" %}
+        <script type="text/javascript">
+            /*
+            balco.print_branches_selector("user_branches", {{ request.session.user_branches|safe}});
+            balco.select_init_branch("select_branches", "{{ request.session.branch_selected }}");
+            */
+        </script>
+    {% endaddtoblock %}
+{% endblock main_content %}

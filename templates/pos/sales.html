@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+{% addtoblock "css" %}
+    <link rel="stylesheet" href="{{STATIC_URL}}css/slick_grid/slick.grid.css" type="text/css" />
+{% endaddtoblock %}
+{% addtoblock "css" %}
+    <link rel="stylesheet" href="{{STATIC_URL}}css/slick_grid/jquery-ui-1.8.16.custom.css" type="text/css" />
+{% endaddtoblock %}
+    <div id="user_branch"></div>
+    <div class="main_fields">
+        <label for="product_code">Codigo:</label>
+        <input type="text" name="product_code" id="product_code" size="50" />
+        <label for="product_qty">Cantidad:</label>
+        <input type="number" name="product_qty" id="product_qty" size="5" value="1" step="1"/>
+        <label for="product_price">Precio:</label>
+        <input type="number" name="product_price" id="product_price" size="5" value="0.0" step="0.1"/>
+    </div>
+    <div id="prod_info"></div>
+    <div id="grid_view">
+    </div>
+    <div id="grid_totals"></div>
+    <div id="save_form">
+        <!--form action="" method="post" id="save_ticket" name="save_ticket"-->
+            <button id="btn_pagar" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#nota">Pagar</button>
+        <!--/form-->
+            <div class="modal fade" id="nota" tabindex="-1" rolde="dialog" arial-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">Pagar nota</h4>
+                        </div>
+                        <div class="modal-body">
+                            <label for="nota_total">Total: </label>
+                            <input type="number" name="nota_total" id="nota_total" size="10" step=".01"/>
+                            <br>
+                            <label for="nota_tipo_pago">Tipo de Pago: </label>
+                            <select name="nota_tipo_pago" id="nota_tipo_pago">
+                                <option name="cash" value="Cash">Efectivo</option>
+                                <option name="credit" value="Credit">Credito</option>
+                                <option name="cheque" value="Check">Cheque</option>
+                                <option name="vale" value="Vale">Vale</option>
+                            </select>
+                            <br>
+                            <label for="nota_pago">Pago: </label>
+                            <input type="number" name="nota_pago" id="nota_pago" size="10" step=".01"/>
+                            <hr>
+                            <label for="nota_cambio">Cambio: </label>
+                            <input type="number" name="nota_cambio" id="nota_cambio" size="10" step=".01"/>
+                        </div>
+                        <div class="modal-footer">
+                             <button type="button" class="pull-left btn btn-default" data-dismiss="modal">Cancelar</button>
+                             <form action="" method="post" id="save_ticket" name="save_ticket">
+                                 <button type="submit" id="nota_btn_imprimir" class="btn btn-primary">Imprmir</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+{% addtoblock "js" %}
+    <script type="text/javascript">
+            balco.print_branches_selector("user_branch", {{ request.session.user_branches|safe}});
+            balco.select_init_branch("select_branches", "{{ request.session.branch_selected }}");
+        </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/jquery.event.drag-2.2.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.core.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.grid.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.dataview.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        var $user = "{{ request.user.username }}";
+        var grid;
+        var columns=[
+            {id:"id", name:"#", field:"id", width:50},
+            {id:"slug", name:"Producto", field:"slug", width:150},
+            {id:"desc", name:"Descripcion", field:"desc", width:400},
+            {id:"price", name:"Precio", field:"price", width:100},
+            {id:"qty", name:"Cantidad", field:"qty", width:50}
+        ];
+
+        var options={
+            enableCellNavigation:true,
+            enableColumnReorder:false
+        };
+        var dataView = new Slick.Data.DataView();
+        grid = new Slick.Grid("#grid_view", dataView, columns, options);
+        // Make the grid respond to DataView change events.
+        dataView.onRowCountChanged.subscribe(function (e, args) {
+          grid.updateRowCount();
+          grid.render();
+        });
+
+        dataView.onRowsChanged.subscribe(function (e, args) {
+          grid.invalidateRows(args.rows);
+          grid.render();
+        });
+
+        grid.onDblClick.subscribe(function(e, args){
+            var $id = dataView.getItem(args.row).id;
+            var $r = confirm("Desea borrar el renglon: " + $id);
+            if ($r == true){
+                dataView.deleteItem($id);
+            }
+            grid_get_total();
+        });
+    </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/sales.js"></script>
+{% endaddtoblock %}
+<script type="text/javascript" src="{{STATIC_URL}}js/deployJava.js"></script>
+<script type="text/javascript">
+    deployQZ();
+    function deployQZ() {
+		var attributes = {id: "qz", code:'qz.PrintApplet.class', 
+			archive:'/static/qz-print.jar', width:1, height:1};
+		var parameters = {jnlp_href: '/static/qz-print_jnlp.jnlp', 
+			cache_option:'plugin', disable_logging:'false', 
+			initial_focus:'false', printer:'zebra'};
+		if (deployJava.versionCheck("1.7+") == true) {}
+		else if (deployJava.versionCheck("1.6+") == true) {
+			attributes['archive'] = 'jre6/qz-print.jar';
+			parameters['jnlp_href'] = 'jre6/qz-print_jnlp.jnlp';
+		}
+		deployJava.runApplet(attributes, parameters, '1.5');
+	}
+
+    function qzReady(){
+        window["qz"] = document.getElementById('qz');
+    }
+	function isLoaded() {
+		if (!qz) {
+			alert('Error:\n\n\tNo se encuentra el Plugin');
+			return false;
+		} else {
+			try {
+				if (!qz.isActive()) {
+					alert('Error:\n\n\tEl Plugin no esta activo');
+					return false;
+				}
+			} catch (err) {
+				alert('Error:\n\n\tNo esta el Plugin instalado');
+				return false;
+			}
+		}
+		return true;
+	}
+ 	function notReady() {
+		// If applet is not loaded, display an error
+		if (!isLoaded()) {
+			return true;
+		}
+		// If a printer hasn't been selected, display a message.
+		else if (!qz.getPrinter()) {
+			alert('No hay impresora');
+			return true;
+		}
+		return false;
+	}
+	
+    function printESCP(str) {
+		if (notReady()) { return; }
+            qz.append(str);
+			qz.print();
+	}
+	function findPrinter(name) {
+		// Get printer name from input box
+		var p = {};
+		if (name) {
+			p.value = name;
+		}
+		
+		//if (isLoaded()) {
+			// Searches for locally installed printer with specified name
+			qz.findPrinter(p.value);
+			
+			// Automatically gets called when "qz.findPrinter()" is finished.
+			window['qzDoneFinding'] = function() {
+				var p = document.getElementById('printer');
+				var printer = qz.getPrinter();
+				window['qzDoneFinding'] = null;
+			};
+		//}
+	}
+	function chr(i) {
+		return String.fromCharCode(i);
+	}
+    findPrinter('zebra');
+</script>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+<div class="products_edit_form">
+    <h2> MODO DE EDICION </h2>
+    <form action="/products/edit-provider/" method="post">
+        {% csrf_token %}
+        {% if form_errors %}
+            {{ form_errors }} <br>
+        {% endif %}
+        <ul class="products_form_ul">
+            {{ edit_form.as_ul }}
+        </ul>
+        {% if message %}
+            <p class="success_message" style="color:red; font-weight:bold;">{{ message }}</p>
+        {% endif %}<br>
+    <button type="submit">Aceptar</button>
+    </form>
+    <br>
+    <form action="/products/add-provider/" method="get">
+        <button class="products_edit_cancelar" type="submit">Cancelar</button>
+    </form>
+</div>
+{% endblock %}

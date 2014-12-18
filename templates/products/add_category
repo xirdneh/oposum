@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+    <form action="/products/add-category/" method="post">
+        {% csrf_token %}
+        {% if form_errors %}
+            {{ form_errors }} <br>
+        {% endif %}
+        <ul class="products_form_ul">
+            {{ add_form.as_ul }}
+        </ul>
+        {% if message %}
+            <p style="font-weight:bold;">{{ message }} </p>
+        {% endif %}
+    <button type="submit">Guardar</button>
+    </form>
+{% endblock %}
