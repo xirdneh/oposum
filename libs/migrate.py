@@ -5,6 +5,7 @@ import re
 from django.core.exceptions import ObjectDoesNotExist
 import re
 import logging
+from decimal import Decimal
 logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
@@ -262,8 +263,9 @@ def get_migration_details( code, description ):
             prod['equivalency'] = weight
             prod['price'] = '0.0'
         elif re.search(r'[0-9]{1,4}\.[0-9]{1,4}', code_arr[2]):
-            line = ''
-            weight = code_arr[2]
+            prod['line'] = ''
+            prod['equivalency'] = Decimal(code_arr[2])
+            prod['price'] = '0.0'
         else:
             try: 
                 price = int(code_arr[2])
@@ -271,7 +273,9 @@ def get_migration_details( code, description ):
                 prod['line'] = ''
                 prod['equivalency']=''
             except:
-                pass
+                prod['line'] = ''
+                prod['equivalency'] = Decimal(code_arr[2])
+                prod['price'] = '0.0'
     prod['code'] = code.replace("-", "")
     prod['name'] = code
     prod['description'] = description
