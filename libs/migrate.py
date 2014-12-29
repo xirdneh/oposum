@@ -261,6 +261,9 @@ def get_migration_details( code, description ):
             weight = m.group(2)
             prod['equivalency'] = weight
             prod['price'] = '0.0'
+        elif re.search(r'[0-9]{1,4}\.[0-9]{1,4}', code_arr[2]):
+            line = ''
+            weight = code_arr[2]
         else:
             try: 
                 price = int(code_arr[2])
