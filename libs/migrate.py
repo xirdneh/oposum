@@ -264,7 +264,7 @@ def get_migration_details( code, description ):
             prod['price'] = '0.0'
         elif re.search(r'[0-9]{1,4}\.[0-9]{1,4}', code_arr[2]):
             prod['line'] = ''
-            prod['equivalency'] = Decimal(code_arr[2])
+            prod['equivalency'] = code_arr[2]
             prod['price'] = '0.0'
         else:
             try: 
@@ -274,7 +274,7 @@ def get_migration_details( code, description ):
                 prod['equivalency']=''
             except:
                 prod['line'] = ''
-                prod['equivalency'] = Decimal(code_arr[2])
+                prod['equivalency'] = code_arr[2]
                 prod['price'] = '0.0'
     prod['code'] = code.replace("-", "")
     prod['name'] = code
