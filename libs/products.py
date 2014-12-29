@@ -14,33 +14,33 @@ def verify_product(prod):
     if prod['linea'] == 25 or prod['linea'] == 17 or prod['linea'] == 13:
         products['is_watch'] = True;
         try:
-            marca = ProductCategory.objects.get(slug = prod['prov'], type = 'marca')
+            marca = ProductCategory.objects.get(slug__iexact = prod['prov'], type = 'marca')
         except ProductCategory.DoesNotExist:
             marca = ProductCategory(slug = prod['prov'], type= 'marca', name = prod['prov'])
             marca.save()
             logger.debug("Marca creada: {0}".format(marca))
     else:
         try:
-            prov = Provider.objects.get(sku = prod['prov'])
+            prov = Provider.objects.get(sku__iexact = prod['prov'])
         except Provider.DoesNotExist:
             prov = Provider( sku = prod['prov'],
                              name = prod['prov'])
             prov.save()
             logger.debug("Prov creado: {0}".format(prov))
     try:
-        bodega = ProductCategory.objects.get(slug = prod['bodega'], type = 'bodega')
+        bodega = ProductCategory.objects.get(slug__iexact = prod['bodega'], type = 'bodega')
     except ProductCategory.DoesNotExist:
         bodega = ProductCategory(slug = prod['bodega'], type = 'bodega', name = prod['bodega'])
         bodega.save()
         logger.debug("Bodega creada: {0}".format(bodega))
     try:
-        area = ProductCategory.objects.get(slug = prod['area'], type = 'area')
+        area = ProductCategory.objects.get(slug__iexact = prod['area'], type = 'area')
     except ProductCategory.DoesNotExist:
         area = ProductCategory(slug = prod['area'], type='area', name=prod['area'])
         area.save()
         logger.debug("Area creada: {0}".format(area))
     try:
-        linea = ProductCategory.objects.get(slug = prod['linea'], type = 'linea')
+        linea = ProductCategory.objects.get(slug__iexact = prod['linea'], type = 'linea')
     except ProductCategory.DoesNotExist:
         linea = ProductCategory(slug = prod['linea'], type = 'linea', name = prod['linea'])
         linea.save()
@@ -52,7 +52,7 @@ def verify_product(prod):
         elif bodega.slug == "2":
             lt = "14k"
         try:
-            line = ProductLine.objects.get(name = prod['line'], type = lt)
+            line = ProductLine.objects.get(name__iexact = prod['line'], type = lt)
         except ProductLine.DoesNotExist:
             line = ProductLine(name = prod['line'], price = Decimal('0.0'))
             line.save()
@@ -85,24 +85,24 @@ def check_product(prod):
     if prod['linea'] == 25 or prod['linea'] == 17 or prod['linea'] == 13:
         products['is_watch'] = True;
         try:
-            product['marca'] = ProductCategory.objects.get(slug = prod['prov'], type = 'marca').id
+            product['marca'] = ProductCategory.objects.get(slug__iexact = prod['prov'], type = 'marca').id
         except ProductCategory.DoesNotExist:
             product['marca'] = 0
     else:
         try:
-            product['prov'] = Provider.objects.get(sku = prod['prov']).id
+            product['prov'] = Provider.objects.get(sku__iexact = prod['prov']).id
         except Provider.DoesNotExist:
             product['prov'] = 0
     try:
-        product['bodega'] = ProductCategory.objects.get(slug = prod['bodega'], type = 'bodega').id
+        product['bodega'] = ProductCategory.objects.get(slug__iexact = prod['bodega'], type = 'bodega').id
     except ProductCategory.DoesNotExist:
             product['bodega'] = 0
     try:
-        product['area'] = ProductCategory.objects.get(slug = prod['area'], type = 'area').id
+        product['area'] = ProductCategory.objects.get(slug__iexact = prod['area'], type = 'area').id
     except ProductCategory.DoesNotExist:
         product['area'] = 0
     try:
-        product['linea'] = ProductCategory.objects.get(slug = prod['linea'], type = 'linea').id
+        product['linea'] = ProductCategory.objects.get(slug__iexact = prod['linea'], type = 'linea').id
     except ProductCategory.DoesNotExist:
         product['linea'] = 0
     if prod['line'] != '':
@@ -114,7 +114,7 @@ def check_product(prod):
         else:
             product['lt'] = ""
         try:
-            product['line'] = ProductLine.objects.get(name = prod['line'], type = product['lt']).id
+            product['line'] = ProductLine.objects.get(name__iexact = prod['line'], type = product['lt']).id
         except ProductLine.DoesNotExist:
             product['line'] = 0
     if prod['price'] != '0.0':

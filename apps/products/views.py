@@ -15,7 +15,7 @@ logger = logging.getLogger("oPOSum.products")
 @login_required
 def add_products(request, prod = ''):
     if request.method == 'POST':
-        p = Product.objects.filter(slug = request.POST['slug'].replace("-",""))
+        p = Product.objects.filter(slug__iexact = request.POST['slug'].replace("-",""))
         if p:
             form = ProductForm(instance=p[0])
             if not request.is_ajax():
@@ -51,7 +51,7 @@ def add_products(request, prod = ''):
 @login_required
 def edit_products(request):
     if request.method == 'POST':
-        p = Product.objects.filter( slug = request.POST['slug'])
+        p = Product.objects.filter( slug__iexact = request.POST['slug'])
         if p:
             form = ProductForm(request.POST, instance=p[0])
             if form.is_valid():
@@ -62,7 +62,7 @@ def edit_products(request):
 @login_required
 def add_category(request): 
     if request.method == 'POST':
-        c = ProductCategory.objects.filter(name = request.POST['name'])
+        c = ProductCategory.objects.filter(name__iexact = request.POST['name'])
         if c:
             form = ProductCategoryForm(instance=c[0])
             return render_to_response('products/edit_category.html', { 'edit_form' : form, 'message': 'Esta categoria ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request)) 
@@ -80,7 +80,7 @@ def add_category(request):
 @login_required
 def edit_category(request):
     if request.method == 'POST':
-        c = ProductCategory.objects.filter( name = request.POST['name'])
+        c = ProductCategory.objects.filter( name__iexact = request.POST['name'])
         if c:
             form = ProductCategoryForm(request.POST, instance=c[0])
             if form.is_valid():
@@ -91,7 +91,7 @@ def edit_category(request):
 @login_required
 def add_provider(request): 
     if request.method == 'POST':
-        p = Provider.objects.filter(sku = request.POST['sku'])
+        p = Provider.objects.filter(sku__iexact = request.POST['sku'])
         if p:
             form = ProviderForm(instance=p[0])
             return render_to_response('products/edit_provider.html', { 'edit_form' : form, 'message': 'Este proveedor ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request)) 
@@ -109,7 +109,7 @@ def add_provider(request):
 @login_required
 def edit_provider(request):
     if request.method == 'POST':
-        p = Provider.objects.filter( sku = request.POST['sku'])
+        p = Provider.objects.filter( sku__iexact = request.POST['sku'])
         if p:
             form = ProviderForm(request.POST, instance=p[0])
             if form.is_valid():
@@ -122,7 +122,7 @@ def get_product(request, slug):
     slug = slug.upper()
     logger.debug("Buscando producto con slug: {0}".format(slug))
     try:
-        p = Product.objects.get(slug=slug.replace("-",""))
+        p = Product.objects.get(slug__iexact=slug.replace("-",""))
         ret = {
             'status':'ok',
             'message': 'Existente',
@@ -153,7 +153,7 @@ def get_product(request, slug):
 
 def __get_full_product(slug):
     try:
-        p = Product.objects.get(slug = slug.replace("-", ""))
+        p = Product.objects.get(slug__iexact = slug.replace("-", ""))
         initial= { 
            'slug': p.slug,
            'provider': p.provider ,
