@@ -5,25 +5,48 @@ from oPOSum.apps.products.models import *
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 import json
+import logging
+import oPOSum.libs.migrate as migrate
+import oPOSum.libs.products as prodlib
+from decimal import Decimal
 # Create your views here.
 from django.template import RequestContext
+logger = logging.getLogger("oPOSum.products")
 @login_required
-def add_products(request):
+def add_products(request, prod = ''):
     if request.method == 'POST':
-        p = Product.objects.filter(slug = request.POST['slug'])
+        p = Product.objects.filter(slug = request.POST['slug'].replace("-",""))
         if p:
             form = ProductForm(instance=p[0])
-            return render_to_response('products/edit_products.html', { 'edit_form' : form, 'message': 'Este articulo ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request)) 
+            if not request.is_ajax():
+                return render_to_response('products/edit_products.html', { 'edit_form' : form, 'message': 'Este articulo ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request))
+            else:
+                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
         else:
             form = ProductForm(request.POST)
         if form.is_valid(): 
             p_new = form.save()
-            return render_to_response('products/add_products.html', { 'add_form' : ProductForm(), 'message':'Articulo guardado exitosamente, ' + p_new.slug}, context_instance=RequestContext(request))
+            if not request.is_ajax():
+                return render_to_response('products/add_products.html', { 'add_form' : ProductForm(), 'message':'Articulo guardado exitosamente, ' + p_new.slug}, context_instance=RequestContext(request))
+            else:
+                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
         else:
-            return render_to_response('products/add_products.html', { 'add_form' : ProductForm(), 'form_errors' : form.errors}, context_instance=RequestContext(request))
+            if not request.is_ajax():
+                return render_to_response('products/add_products.html', { 'add_form' : ProductForm(request.POST), 'form_errors' : form.errors}, context_instance=RequestContext(request))
+            else:
+                return HttpResponse("{ \"status\":\"error\", \"message\":\"message\"}", mimetype='application/json')
     else:
-        form = ProductForm()
-        return render_to_response('products/add_products.html', { 'add_form' : form }, context_instance=RequestContext(request))
+        if prod == '':
+            form = ProductForm()
+            return render_to_response('products/add_products.html', { 'add_form' : form }, context_instance=RequestContext(request))
+        else:
+            logger.debug("Analaizando nuevo producto: {0}".format(prod))
+            return render_to_response('products/add_products.html', 
+                                  { 'add_form' : ProductForm(initial= __get_full_product(prod)),
+                                    'message': 'Al guardar el articulo esta ventana se cerrara',
+                                    'close_on_save':True
+                                  }, context_instance=RequestContext(request))
+
 
 @login_required
 def edit_products(request):
@@ -96,10 +119,81 @@ def edit_provider(request):
 
 @login_required
 def get_product(request, slug):
+    slug = slug.upper()
+    logger.debug("Buscando producto con slug: {0}".format(slug))
     try:
-        p = Product.objects.get(slug=slug)
-        ret = []
-        ret.append({'slug':p.slug, 'price':str(p.regular_price), 'description':p.description})
+        p = Product.objects.get(slug=slug.replace("-",""))
+        ret = {
+            'status':'ok',
+            'message': 'Existente',
+            'product': 
+                {
+                    'slug':p.slug, 
+                    'price':str(p.regular_price), 
+                    'description':p.description
+                }
+        }
+        logger.debug("Producto conocido: {0}".format(p))
     except Product.DoesNotExist:
-        ret = []
+        p = migrate.get_art(slug) 
+        if len(p) > 0 :
+            p = migrate.get_migration_details( p[0][15], p[0][1] ) 
+            logger.debug("Producto desconocido: {0}".format(p))
+            ret = {
+                'status':'ok',
+                'message': 'Migrando',
+                'product':p
+                }
+        else:
+            logger.debug("Producto no encontrado")
+            ret = {}
+            ret['status'] = 'error'
+            ret['message'] = 'Producto no encontrado'
     return HttpResponse(json.dumps(ret) , mimetype='application/json')
+
+def __get_full_product(slug):
+    try:
+        p = Product.objects.get(slug = slug.replace("-", ""))
+        initial= { 
+           'slug': p.slug,
+           'provider': p.provider ,
+           'category': [c.id for c in p.category_set.all()],
+           'line': p.line,
+           'regular_price': p.regular_price,
+           'equivalency': p.equivalency ,
+           'description':p.description,
+           'close_after': True,
+           }
+    except Product.DoesNotExist:
+        p_det = migrate.get_migration_details(slug, '')
+        product = prodlib.check_product(p_det)
+        initial= { 
+           'slug': product['code'],
+           'provider':product['prov'] ,
+           'category': [product['bodega'], product['area'], product['linea'], product['marca']],
+           'line':product['line'] ,
+           'regular_price': product['regular_price'],
+           'equivalency':product['equivalency'] ,
+           'description':'',
+           'close_after': True
+           }
+
+    return initial
+
+@login_required
+def migrate_prod(request):
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+        json_p = data['product']
+        product = prodlib.verify_product(json_p)
+        p = product['obj']
+        ret = {
+            'status': 'ok',
+            'message': 'Ok',
+            'product': {
+                        'slug':p.slug,
+                        'price':str(p.regular_price),
+                        'description':p.description
+                        }
+        }
+        return HttpResponse(json.dumps(ret), mimetype='application/json')

@@ -4,11 +4,13 @@ from oPOSum.apps.products.models import *
 from django.utils.translation import ugettext as _
 
 class ProductForm(forms.ModelForm):
+    close_after = forms.BooleanField(required=False, widget=forms.HiddenInput, initial=False)
     class Meta:
         model = Product
-        fields = ['slug', 'provider', 'category', 'line', 'regular_price', 'equivalency', 'description']
+        fields = ['slug', 'name', 'provider', 'category', 'line', 'regular_price', 'equivalency', 'description']
         widgets = {
             'slug' : forms.TextInput(attrs={ 'tabindex' : 0}),
+            'name' : forms.HiddenInput(),
             'provider' : forms.Select(attrs={ 'tabindex' : 1}),
             'category' : FilteredSelectMultiple('ProductCategory',False,attrs={ 'tabindex' : 2}),
             'line' : forms.Select(attrs={ 'tabindex' : 3}),
@@ -28,7 +30,11 @@ class ProductForm(forms.ModelForm):
         }
         # Adding this javascript is crucial
         js = ['/static/js/jsi18n.js']
-
+    
+    def save(self, *args, **kwargs):
+        self.instance.name = self.instance.slug
+        self.instance.slug = self.instance.slug.replace("-", "")
+        return super(ProductForm, self).save(*args, **kwargs)
 
 class ProviderForm(forms.ModelForm):
     class Meta:

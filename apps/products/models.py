@@ -67,3 +67,15 @@ class Product(models.Model):
 
     def __unicode__(self):
         return "%s : %s" % (self.slug, self.name)
+
+    def as_json(self):
+        return dict(
+            name = self.name,
+            slug = self.slug,
+            provider = self.provider.name,
+            categories = [dict(name = c.name, slug = c.slug, type = c.type) for c in self.category_set.all()],
+            line = self.line.name,
+            regular_price = self.regular_price,
+            equivalency = self.equivalency,
+            description = self.description
+        )

@@ -3,10 +3,12 @@ import sys
 from oPOSum.apps.products.models import *
 import re
 from django.core.exceptions import ObjectDoesNotExist
-
+import re
+import logging
+logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
-        con = mdb.connect('balco.no-ip.org', 'root', 'tsmbat', 'balco', port=8011)
+        con = mdb.connect('localhost', 'root', 'tsmbat', 'balco')
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0], e.args[1])
     return con
@@ -38,6 +40,21 @@ def get_arts( ):
         con.close()
     return res
 
+def get_art( code ):
+    con = get_con()
+    cur = con.cursor()
+    cur.execute("select * from articulos where cbarras = %s", 
+                    (
+                        code.replace("-", ""),
+                    )
+                )
+    logger.debug("Statement:{0}".format(code))
+    res = cur.fetchall()
+    if con:
+        con.close()
+    logger.debug("Mysql Response:{0}".format(res))
+    return res
+
 def get_det( art ):
     con = get_con()
     cur = con.cursor()
@@ -63,7 +80,8 @@ def get_art_objs( objs ):
             prov = "0" + prov
         else:
             if len(prov) > 3:
-                prov = prov[:2]
+                #prov = prov[:2]
+                prov = "00"
         s = "{0} \n".format(parts)
         #print parts
         #f.write(s)
@@ -196,6 +214,72 @@ def get_art_objs( objs ):
             #f.write(s)
             s = "========================================================================= \n"
             #f.write(s)
+
+def get_migration_details( code, description ):
+    prod = {}
+    code_arr = code.split('-')
+    linea = code_arr[0][:2]
+    prov = code_arr[0][2:]
+    string = code_arr[1]
+    try:
+        bodega = string[:2]
+        bodega = int(bodega)
+    except:
+        try:
+            bodega = string[:1]
+            bodega = int(bodega)
+        except:
+            if string[0] == 'T':
+                bodega = 14
+                area = 'TLL'
+            elif string[0] == 'B':
+                bodega = 16
+                area = 'B'
+            elif string[0] == 'C':
+                bodega = 6
+                area = 'C'
+            elif string[0] == 'A':
+                bodega = 16
+                area = 'A'
+            elif code_Arr[1][0] == 'P':
+                bodega = 16
+                area = 'P'
+
+    if linea == 19 or bodega == 17:
+        area = 'EST'
+    elif string[2:] == 'LAMI':
+        area = 'LAM'
+    elif linea == 17 or linea == 25 or linea == 13:
+        area = 'R'
+    else:
+        area = 'J'
+    if(len(code_arr) > 2):
+        m = re.search(r'^(0?[A-Za-z]{1,2})([0-9]{1,4}\.[0-9]{1,4})', code_arr[2])
+        if m:
+            line = m.group(1)
+            prod['line'] = line
+            weight = m.group(2)
+            prod['equivalency'] = weight
+            prod['price'] = '0.0'
+        else:
+            try: 
+                price = int(code_arr[2])
+                prod['price'] = price
+                prod['line'] = ''
+                prod['equivalency']=''
+            except:
+                pass
+    prod['code'] = code.replace("-", "")
+    prod['name'] = code
+    prod['description'] = description
+    if(linea[:1] == '0'):
+        prod['linea'] = linea[1]
+    else:
+        prod['linea'] = linea
+    prod['prov'] = prov
+    prod['bodega'] = bodega
+    prod['area'] = area
+    return prod   
 
 def arts():
     objs = get_arts()

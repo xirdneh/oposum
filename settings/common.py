@@ -18,10 +18,10 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'balcodb',                      # Or path to database file if using sqlite3.
+        'NAME': 'oposm_db',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        'USER': 'balco',
-        'PASSWORD': 'tsmbat',
+        'USER': 'oposm_db_usr',
+        'PASSWORD': 'nln1kwyrt',
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
@@ -56,7 +56,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/home/xirdneh/projects/django/oPOSum/oposm_media/'
+MEDIA_ROOT = '/home/xirdneh/projects/django/oPOSum/oposum_media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -67,7 +67,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = '/home/xirdneh/projects/django/oPOSum/oposm_static/'
+STATIC_ROOT = '/home/xirdneh/projects/django/oPOSum/oposum_static/'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -79,6 +79,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    #'/home/xirdneh/projects/django/oPOSum/oposum_static/',
 )
 
 # List of finder classes that know how to find static files in
@@ -166,6 +167,14 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+    'formatters':{
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+        },
+        'simple': {
+            'format': '[%(levelname)s] %(message)s'
+        },
+    },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
@@ -174,8 +183,30 @@ LOGGING = {
         },
         'oposum_pos': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/balco/logs/user/oposum.debug.log'
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/home/xirdneh/projects/django/oPOSum/logs/oposum.debug.log',
+            'when': 'D',
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+            'backupCount': 5
+        },
+        'oposum_products': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/home/xirdneh/projects/django/oPOSum/logs/oposum.debug.log',
+            'when': 'D',
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+            'backupCount': 5
+        },
+        'oposum_mysql': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/home/xirdneh/projects/django/oPOSum/logs/oposum.debug.log',
+            'when': 'D',
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+            'backupCount': 5
         },
     },
     'loggers': {
@@ -184,7 +215,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'oPOSum.pos':{
+        'oPOSum':{
             'handlers':['oposum_pos'],
             'level':'DEBUG',
             'propagate':True,

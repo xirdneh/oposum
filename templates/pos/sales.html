@@ -58,6 +58,25 @@
                     </div>
                 </div>
             </div>
+        <!-- MODAL -->
+            <div class="modal fade" id="mensaje" tabindex="-1" rolde="dialog" arial-labelledby="mensaje" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="mensaje-title">Verificar detalles del producto</h4>
+                        </div>
+                        <div class="modal-body" id="mensaje-body">
+                        </div>
+                        <div class="modal-footer">
+                             <button type="button" class="pull-left btn btn-default" data-dismiss="modal">Cancelar</button>
+                             <form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form">
+                                 <button type="submit" id="mensaje-aceptar" class="btn btn-primary">Aceptar</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </div>
 
 {% addtoblock "js" %}

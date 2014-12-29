@@ -12,6 +12,7 @@ class Existence(models.Model):
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
 
 class ExistenceHistory(models.Model):
+    folio_number = models.PositiveIntegerField(_("Folio Number"))
     user = models.ForeignKey(User)
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
     action = models.CharField(_("Action"), max_length=255, blank=False, null=False,
