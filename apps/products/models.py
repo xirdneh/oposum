@@ -44,6 +44,7 @@ class ProductLine(models.Model):
         choices = (
             ('10k', '10K'),
             ('14k', '14K'),
+            ('plata', 'Plata'),
         )
     )
 
