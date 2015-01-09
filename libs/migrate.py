@@ -9,7 +9,7 @@ from decimal import Decimal
 logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
-        con = mdb.connect('localhost', 'root', 'tsmbat', 'balco')
+        con = mdb.connect('balco.ddns.net', 'root', 'tsmbat', 'balco', port=8011)
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0], e.args[1])
     return con
@@ -242,7 +242,7 @@ def get_migration_details( code, description ):
             elif string[0] == 'A':
                 bodega = 16
                 area = 'A'
-            elif code_Arr[1][0] == 'P':
+            elif code_arr[1][0] == 'P':
                 bodega = 16
                 area = 'P'
 

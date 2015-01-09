@@ -51,6 +51,8 @@ def verify_product(prod):
             lt = "10k"
         elif bodega.slug == "2":
             lt = "14k"
+        elif bodega.slug == "16":
+            lt = "plata"
         try:
             line = ProductLine.objects.get(name = prod['line'], type = lt)
         except ProductLine.DoesNotExist:

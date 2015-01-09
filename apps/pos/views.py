@@ -46,7 +46,7 @@ def save_sale(request):
                 prods.append(sd)
             except Product.DoesNotExist:
                 pr = Provider.objects.get(sku = "00")
-                p = Product(slug = detail['slug'], regular_price = Decimal(detail['price']), provider=pr)
+                p = Product(name = detail['slug'], slug = detail['slug'].replace('-', ''), regular_price = Decimal(detail['price']), provider=pr)
                 p.save()
                 sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']))
                 sd.save()
