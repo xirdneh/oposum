@@ -278,7 +278,7 @@ def get_migration_details( code, description ):
                 prod['price'] = '0.0'
     prod['code'] = code.replace("-", "")
     prod['name'] = code
-    prod['description'] = description
+    prod['description'] = unicode(description, errors='ignore')
     if(linea[:1] == '0'):
         prod['linea'] = linea[1]
     else:

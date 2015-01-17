@@ -36,7 +36,7 @@ def add_products(request, prod = ''):
             else:
                 return HttpResponse("{ \"status\":\"error\", \"message\":\"message\"}", mimetype='application/json')
     else:
-        if prod == '':
+        if prod == '' or not prod:
             form = ProductForm()
             return render_to_response('products/add_products.html', { 'add_form' : form }, context_instance=RequestContext(request))
         else:
