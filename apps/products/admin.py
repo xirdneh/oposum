@@ -21,8 +21,13 @@ class ProductAdmin(admin.ModelAdmin):
     filter_horizontal = ['category']
 
 
+class ProviderAdmin(admin.ModelAdmin):
+    list_display = ('sku', 'name', 'type')
+    list_filter = ('type', )
+    search_fields = ['sku', 'name']
+
 admin.site.register(ProviderDetail)
-admin.site.register(Provider)
+admin.site.register(Provider, ProviderAdmin)
 admin.site.register(ProductCategory, ProductCategoryAdmin)
 admin.site.register(ProductLine)
 admin.site.register(ProductDetail)

@@ -1,0 +1,116 @@
+body {
+    margin-top:70px;
+}
+
+.main_container {
+    min-height:700px;
+}
+.login_form {
+        width:35%;
+        height:200px;
+        margin:auto;
+    }
+
+.nav_username {
+    color: #eee;
+    text-shadow:0 -1px 0 rgba(0,0,0,0.25);
+    display:inline-block;
+    padding:15px 15px;
+}
+
+
+/***
+    STYLES FOR FORMS
+    ***/
+.products_form_ul {
+    list-style:none;
+}
+
+.products_form_ul li {
+    margin:5px 0;
+}
+
+.products_form_ul li label {
+    width:100px;
+    padding-right:10px;
+    text-align:right;
+}
+
+.products_form {
+    border:1px solid #888;
+    padding:5px;
+}
+
+.products_form .form_field_wrapper {
+    margin:2px 0px;
+}
+
+.products_form .form_field_wrapper label {
+    width:100px;
+    text-align:right;
+    padding-right:10px;
+}
+
+.products_form .form_field_wrapper .selector {
+    margin-left:110px;
+}
+
+.products_form .form_field_wrapper:nth-child(odd) {
+    background: #eee;
+    padding:3px 0px;
+}
+
+.success_message {
+    width:100%;
+    padding:10px;
+    margin:5px 0px;
+    border:1px solid #888;
+    text-align:center;
+    background:#FF9933;
+}
+
+/*********************************************************/
+
+/***
+    Grid Box
+***/
+
+#grid_view *, #grid_view *:before, #grid_view *:after {
+    box-sizing:content-box;
+}
+
+#grid_view {
+    width:100%;
+    height:500px;
+}
+
+/******************************************************/
+
+/*** 
+    Sales
+***/
+
+#prod_info {
+    margin:10px;
+    padding:5px;
+    border:1px solid #eee;
+    background:#FF9933;
+}
+
+#prod_info span {
+    margin:0px 20px;
+}
+
+/****************************************************
+Modal Grid
+****************************************************/
+.modal .modal-body .mensaje-modal-row{
+    width:100%;
+}
+
+.modal .modal-body .mensaje-modal-cell {
+    min-width:15%;
+    margin-right:5px;
+    display:inline-block;
+    font-weight:bold;
+}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+{% addtoblock "css" %}
+    <link rel="stylesheet" href="{{STATIC_URL}}css/slick_grid/slick.grid.css" type="text/css" />
+{% endaddtoblock %}
+{% addtoblock "css" %}
+    <link rel="stylesheet" href="{{STATIC_URL}}css/slick_grid/jquery-ui-1.8.16.custom.css" type="text/css" />
+{% endaddtoblock %}
+{% if enable_form %}
+    <h1> {{ inventory }} </h1>
+    <p> {{ inventory.comments }} </p>
+    <div id="user_branch"></div>
+    <div class="main_fields">
+        <label for="product_code">Codigo:</label>
+        <input type="text" name="product_code" id="product_code" size="50" />
+        <label for="product_qty">Cantidad:</label>
+        <input type="number" name="product_qty" id="product_qty" size="5" value="1" step="1"/>
+    </div>
+    <div id="prod_info"></div>
+    <div id="grid_view">
+    </div>
+    <div id="grid_totals"></div>
+    <div id="save_form">
+        <!--form action="" method="post" id="save_ticket" name="save_ticket"-->
+           <!-- <button id="btn_guardar" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#guardar">Guardar</button> -->
+        <!--/form-->
+
+        <!-- MODAL -->
+            <div class="modal fade" id="mensaje" tabindex="-1" rolde="dialog" arial-labelledby="mensaje" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="mensaje-title">Verificar detalles del producto</h4>
+                        </div>
+                        <div class="modal-body" id="mensaje-body">
+                        </div>
+                        <div class="modal-footer">
+                             <button type="button" class="pull-left btn btn-default" data-dismiss="modal">Cancelar</button>
+                             <form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form">
+                                 <button type="submit" id="mensaje-aceptar" class="btn btn-primary">Aceptar</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+{% else %}
+    <h1> {{ title }} </h1>
+{% endif %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+            balco.print_branches_selector("user_branch", {{ request.session.user_branches|safe}});
+            balco.select_init_branch("select_branches", "{{ inv_branch }}");
+        </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/jquery.event.drag-2.2.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.core.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.grid.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/slick_grid/slick.dataview.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        var $user = "{{ request.user.username }}";
+        var grid;
+        var columns=[
+            {id:"id", name:"#", field:"id", width:50},
+            {id:"slug", name:"Producto", field:"slug", width:150},
+            {id:"desc", name:"Descripcion", field:"desc", width:400},
+            {id:"qty", name:"Cantidad", field:"qty", width:50}
+        ];
+
+        var options={
+            enableCellNavigation:true,
+            enableColumnReorder:false
+        };
+        var dataView = new Slick.Data.DataView();
+        grid = new Slick.Grid("#grid_view", dataView, columns, options);
+        // Make the grid respond to DataView change events.
+        dataView.onRowCountChanged.subscribe(function (e, args) {
+          grid.updateRowCount();
+          grid.render();
+        });
+
+        dataView.onRowsChanged.subscribe(function (e, args) {
+          grid.invalidateRows(args.rows);
+          grid.render();
+        });
+
+        grid.onDblClick.subscribe(function(e, args){
+            var $row = dataView.getItem(args.row);
+            var $r = confirm("Desea borrar el renglon: " + $row.id);
+            if ($r == true){
+                //dataView.deleteItem($row);
+                var res = delete_inv_entry($row);
+            }
+            grid_get_total();
+        });
+    </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/inventory_check.js"></script>
+{% endaddtoblock %}
+{% endblock %}

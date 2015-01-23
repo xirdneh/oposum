@@ -1,0 +1,38 @@
+.selector{
+    float:none;
+    display:block;
+    height:332px;
+}
+
+.selector input[type="submit"]{
+    display:block;
+    clear:both;
+}
+
+.selector h2{
+    font-size:15px;
+}
+.selector  select{
+    margin: 2px 0;
+    padding: 2px 3px;
+    font-weight: normal;
+    width: 400px !important;
+    height: 17.2em;
+}
+
+textarea{
+    display:block;
+    width:450px;
+}
+
+.selector .selector-filter {
+    font-size:13px;
+}
+
+.selector h2 {
+    margin:0;
+}
+
+.selector .selector-chosen h2 {
+    background: url("/static/admin/img/nav-bg.gif") repeat-x scroll left bottom #FFF;
+}

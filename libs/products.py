@@ -119,6 +119,8 @@ def check_product(prod):
             product['line'] = ProductLine.objects.get(name = prod['line'], type = product['lt']).id
         except ProductLine.DoesNotExist:
             product['line'] = 0
+    else:
+        product['line'] = prod['line']
     if prod['price'] != '0.0':
         product['is_price'] = True;
     product['code'] = prod['name']

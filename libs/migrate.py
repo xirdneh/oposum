@@ -9,7 +9,7 @@ from decimal import Decimal
 logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
-        con = mdb.connect('balco.ddns.net', 'root', 'tsmbat', 'balco', port=8011)
+        con = mdb.connect('localhost', 'root', 'tsmbat', 'balco')
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0], e.args[1])
     return con
@@ -245,6 +245,9 @@ def get_migration_details( code, description ):
             elif code_arr[1][0] == 'P':
                 bodega = 16
                 area = 'P'
+            elif string[0] == 'V':
+                bodega = 20
+                area = 'RC' 
 
     if linea == 19 or bodega == 17:
         area = 'EST'
@@ -252,7 +255,7 @@ def get_migration_details( code, description ):
         area = 'LAM'
     elif linea == 17 or linea == 25 or linea == 13:
         area = 'R'
-    else:
+    elif not linea:
         area = 'J'
     if(len(code_arr) > 2):
         m = re.search(r'^(0?[A-Za-z]{1,2})([0-9]{1,4}\.[0-9]{1,4})', code_arr[2])
@@ -286,6 +289,7 @@ def get_migration_details( code, description ):
     prod['prov'] = prov
     prod['bodega'] = bodega
     prod['area'] = area
+    logger.debug("Product: {0}".format(prod));
     return prod   
 
 def arts():
