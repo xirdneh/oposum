@@ -9,9 +9,9 @@ from decimal import Decimal
 logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
-        con = mdb.connect('localhost', 'root', 'tsmbat', 'balco')
+        con = mdb.connect('joyeriasbalco.com', 'root', 'tsmbat', 'balco')
     except mdb.Error, e:
-        print "Error %d: %s" % (e.args[0], e.args[1])
+        logger.error("Error %d: %s" % (e.args[0], e.args[1]))
     return con
 
 def get_lines( ):

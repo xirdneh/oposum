@@ -5,15 +5,19 @@ from oPOSum.apps.inventory.models import *
 class InventoryEntryAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
-            'fields': ('inv', 'product', 'quantity', 'user', 'date_time')
+            'fields': ('inv', 'product', 'quantity', 'user')
         }),
     )
     list_display = ('inv', 'product', 'quantity', 'user', 'date_time')
     list_filter = ('inv', )
     search_fields = ['inv', 'product']
 
+class ExistenceAdmin(admin.ModelAdmin):
+    list_display = ('branch', 'product', 'quantity', 'date_time')
+    list_filter = ('branch', )
+    search_Fields = ['branch', 'product']
 
-admin.site.register(Existence)
+admin.site.register(Existence, ExistenceAdmin)
 admin.site.register(ExistenceHistory)
 admin.site.register(Client)
 admin.site.register(ExistenceHistoryDetail)

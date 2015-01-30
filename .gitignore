@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 .gitignore
 
+settings/local.py
+settings/local_logging.py
 # C extensions
 *.so
 

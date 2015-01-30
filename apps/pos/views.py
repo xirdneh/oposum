@@ -5,14 +5,17 @@ from django.http import HttpResponse
 from oPOSum.apps.products.models import Product, Provider
 from oPOSum.apps.branches.models import Branch
 from oPOSum.apps.pos.models import POSFolio, Sale, SaleDetails
+from oPOSum.apps.inventory.models import Existence
 from django.contrib.auth.models import User
 from datetime import datetime
-import logging
+from django.conf import settings
+import logging, traceback
 import json
 from decimal import Decimal
 
 # Create your views here.
-logger = logging.getLogger("oPOSum.pos")
+logger = logging.getLogger(__name__)
+log_sales = logging.getLogger("sales")
 
 def get_pos_folio(branch, type):
     b = branch
@@ -51,8 +54,20 @@ def save_sale(request):
                 sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']))
                 sd.save()
                 prods.append(sd)
+
         s = Sale(branch = branch, user = user, total_amount = total, folio_number = folio, payment_method = pt, payment_amount = pa)
         s.save()
+        try:
+            branch = Branch.objects.get(pk = post_json['branch'])
+            allowed_data = open("{0}/../libs/branches.json".format(settings.PROJECT_DIR))
+            allowed = json.load(allowed_data)
+            if branch.slug in allowed['allowed']:
+                pe = Existence.objects.get(product__slug = detail['slug'], branch = branch)
+                pe.quantity -= int(detail['qty'])
+                pe.save()
+        except:
+            log_sales.error("Error while substracting existance by sale {0}:\n{1}\n".format(
+                         s, traceback.format_exc())) 
         for sd in prods:
             sd.sale = s
             sd.save()
