@@ -1,7 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from oPOSum.apps.inventory.models import Inventory, InventoryEntry
+from oPOSum.apps.inventory.models import Inventory, InventoryEntry, Existence, ExistenceHistory, ExistenceHistoryDetail
 from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
@@ -17,12 +17,60 @@ def entries(request):
     pass
 
 @login_required
-def add_existence(request):
+def manage_existence(request):
+    logger.debug("Into the view")
     return render_to_response('inventory/add_existence.html', 
                               context_instance=RequestContext(request))
 
 @login_required
+def save_entries(request):
+    data = json.loads(request.POST['data'])
+    logger.debug("Data to save for entries: {0}".format(data))
+    u = User.objects.get(username = data['user'])
+    b = Branch.objects.get(slug = data['branch'])
+    details = data['details']
+    try:
+        eh = ExistenceHistory(user = u, branch = b, action = 'altas')
+        eh.save();
+        for d in details:
+            p = Product.objects.get(slug = d['slug'].replace('-', ''))
+            q = int(d['qty'])
+            try:
+                e = Existence.objects.get(branch = b, product = p)
+            except Existence.DoesNotExist:
+                logger.debug("Creating Existence for {0}".format(b.name))
+                e = Existence(product = p, quantity = 0, branch = b)
+            e.quantity += q
+            e.save()
+            logger.debug("Existence saved: {0}".format(e))
+            ehd = ExistenceHistoryDetail(product = p, quantity = q, existence = eh)
+            ehd.save()
+
+    except:
+        logger.debug("Error while saving entries history \n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+    return HttpResponse("{ \"status\": \"ok\", \"message\":\"" + str(eh.id) + "\"}", mimetype="application/json")
+
+
+@login_required
+def print_entries_report(request):
+    pass
+
+@login_required
+def existence_history(request, id):
+    logger.debug("History iD to retrieve: {0}".format(id))
+    try:
+        eh = ExistenceHistory.objects.get(id = id)
+        ehds = ExistenceHistoryDetail.objects.filter(existence = eh)
+        ret = [ehd.as_json() for ehd in ehds]
+        return render_to_response('inventory/existence_history.html', { 'entries': json.dumps(ret), 'eh':eh.as_json()},context_instance=RequestContext(request))
+    except:
+        logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+
+@login_required
 def inventory_check(request):
+    logger.debug("Into the view")
     inventory = Inventory.objects.filter(enabled = True).order_by('date_time')
     branches = list(request.user.employee.branch.all())
     if len(inventory) > 0 and inventory[0].branch in branches:

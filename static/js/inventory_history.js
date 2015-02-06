@@ -111,15 +111,53 @@ var $pp = $("#product_qty").keyup(function(e){
             $id++;
         }
         $prod.qty = $("#product_qty").val();
-        $data.push({'id': $id, 'slug': $prod.slug, 'desc': $prod.description,
-        'qty': $prod.qty});
-        dataView.setItems($data);
-        $("#product_code").val("");
-        $("#product_code").focus();
-        $("#product_price").val("");
-        grid_get_total();
+        var csrftoken = balco.get_cookie('csrftoken');
+        $.ajax({
+            crossDomain: false,
+            beforeSend: function(xhr, settings){
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            type:'post',
+            url: '/inventory/save-entry',
+            data: {data: "{" + 
+                "\"slug\": \"" + $prod.slug + "\"," + 
+                "\"qty\": \"" + $prod.qty + "\" ," +
+                "\"user\": \"" + $user + "\"" +
+                 "}"
+            },
+            success:function(data){
+                if (data.status == 'ok'){
+                    $data.push({'id': $id, 'slug': $prod.slug, 'desc': $prod.description,
+                    'qty': $prod.qty});
+                    dataView.setItems($data);
+                    $("#product_code").val("");
+                    $("#product_code").focus();
+                    $("#product_price").val("");
+                    grid_get_total();
+                } else {
+                    alert("Se produjo un error, favor de intentarlo de neuvo.");
+                    $("#product_code").focus();
+                }
+            },
+            error:function(jqXHR, textStatus, errorThrown){
+                alert("Se produjo un error, favor de intentarlo de nuevo. \n" + errorThrown);
+            }
+        });
     }
 });
+
+function load_entries(entries){
+    var data = dataView.getItems();
+    var id = 0;
+    $("loading").text("Cargando...");
+    for(var i = 0; i < entries.length; i++){
+        var prod = entries[i];
+        data.push({'id': id, 'slug': prod.product, 'desc': prod.description, 'qty': prod.quantity });
+        id++;
+    }
+    $("loading").text("");
+    dataView.setItems(data);
+}
 
 function grid_get_total(){
     var $data = dataView.getItems();
@@ -131,67 +169,6 @@ function grid_get_total(){
     }
     $("#grid_totals").html("<strong>Total Piezas:</strong> <span id='nota_qty_total'>" + $t_qty + "</span>");
 }
-
-$("#btn_guardar").click(function(e){
-    var modal = $("#mensaje");
-    modal.on('show.bs.modal', function(event){
-        var mod = $(this)
-        var modal_body = mod.find("#mensaje-body");
-        var body = "<p> Desea Guardar estos movimientos?" + 
-                   "</p>";
-        modal_body.html(body);
-        var frm_aceptar = mod.find("#mensaje-aceptar-form");
-        frm_aceptar.submit(function(e){
-            e.preventDefault();
-            modal_body.html("<h2>Guardando datos...</h2>"); 
-            var $td = JSON.stringify(dataView.getItems());
-            var $branch = $("#select_branches")[0].options[$("#select_branches")[0].selectedIndex].value;
-            var $data = {data:"{\"user\":\"" + $user +"\", "+ 
-                           "\"branch\":\"" + $branch + "\", "+ 
-                           "\"details\":" + $td +"}" };
-            var csrftoken = balco.get_cookie('csrftoken');
-            $.ajax({
-                crossDomain: false,
-                beforeSend: function(xhr, settings){
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                },
-                type:"post",
-                url: "/inventory/save-entries",
-                data: $data,
-                error: function(jqXHR, textStatus, errorThrown){
-                      alert("Se produjo un error al guardar los datos, favor the intentar de nuevo.\n" + errorThrown);
-            }
-            }).done(function(data){
-                var $folio = data.folio;
-                var $total = 0;
-                var empty = [];
-                dataView.setItems(empty);
-                if(data.status == 'ok'){
-                    modal_body.html("<p style='color:#99ce2f;'> Entradas guardadas exitosamente. Desea imprimir el filio de entradas #" + data.message + "</p>");
-                    $("#mensaje-aceptar").text("Imprimir");
-                    $("#mensaje-aceptar").removeClass('btn-main');
-                    $("#mensaje-aceptar").addClass('btn-success');
-                    frm_aceptar.submit(function(e){
-                        e.preventDefault();
-                        window.location = "/inventory/print-entries-report/" + data.message;
-                        $("#mensaje-aceptar").text("Aceptar");
-                        $("#mensaje-aceptar").removeClass('btn-success');
-                        $("#mensaje-aceptar").addClass('btn-main');
-                   });
-                }
-                $("#product_code").focus();
-                $("#grid_totals").html("<strong>Total:</strong> <span id='nota_sub_total'>0.0</span>");
-                $("#nota_btn_imprimir").prop("disabled", false);
-            });
-        });
-    });
-    modal.on('hidden.bs.modal', function(event){
-        $("#mensaje-aceptar").text("Aceptar");
-        $("#mensaje-aceptar").removeClass('btn-success');
-        $("#mensaje-aceptar").addClass('btn-main');
-    });
-    modal.modal('show');
-});
 
 $("#btn_guardar").submit(function(e){
     e.preventDefault();
@@ -205,40 +182,64 @@ $("#btn_guardar").submit(function(e){
                 $now.setHours($utc.getHours() - 6);
             }
     });
-    
-});
-
-$("#historial-entradas").click(function(e){
-    e.preventDefault();
-    var modal = $("#mensaje");
-    modal.on('show.bs.modal', function(event){
-        var mod = $(this);
-        var modal_body = mod.find("#mensaje-body");
-        var body = "<input type='number' id='folio_num' name='folio_num' />";
-        modal_body.html(body);
-        var frm_aceptar = mod.find("#mensaje-aceptar-form");
-        frm_aceptar.submit(function(e){
-            e.preventDefault();
-            var f = $("#folio_num").val();
-            window.location = "/inventory/existence-history/" + f;
-        });
-    });
-    modal.modal('show');
-});
-
-function goodbye(e) {
-    if(dataView.getLength() > 0){
-        if (!e) e = window.event;
-        //e.cancelBubble is supported by IE - this will kill the bubbling process.
-        e.cancelBubble = true;
-        e.returnValue = 'Esta pagina se va a cerrar y la informacion se perdera. Esta seguro de querer hacer esto?'; //This is displayed on the dialog
-        //e.stopPropagation works in Firefox.
-        if (e.stopPropagation) {
-            e.stopPropagation();
-            e.preventDefault();
+    var $td = JSON.stringify(dataView.getItems());
+    var $branch = $("#select_branches")[0].options[$("#select_branches")[0].selectedIndex].value;
+    var $data = {data:"{\"user\":\"" + $user +"\", "+ 
+                       "\"branch\":\"" + $branch + "\", "+ 
+                       "\"details\":" + $td +"}" };
+    var csrftoken = balco.get_cookie('csrftoken');
+    $.ajax({
+        crossDomain: false,
+        beforeSend: function(xhr, settings){
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+        type:"post",
+        url: "/inventory/save-entries",
+        data: $data,
+        error: function(jqXHR, textStatus, errorThrown){
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
         }
-        return null;
-    }
-}
-window.addEventListener("beforeunload", goodbye); 
+    }).done(function(data){
+            var $folio = data.folio;
+            var $total = 0;
+        var empty = [];
+        dataView.setItems(empty);
+        $("#nota").modal('hide');
+        $("#product_code").focus();
+        $("#grid_totals").html("<strong>Total:</strong> <span id='nota_sub_total'>0.0</span>");
+        $("#nota_btn_imprimir").prop("disabled", false);
+    });
+});
 
+
+function delete_inv_entry(row){
+    var csrftoken = balco.get_cookie('csrftoken');        
+    $.ajax({
+        crossDomain:false,
+        beforeSend: function(xhr, settings){
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+        type:"post",
+        url: "/inventory/delete-entry",
+        data: {data: "{" + 
+                "\"slug\": \"" + row.slug + "\"," + 
+                "\"qty\": \"" + row.qty + "\" ," +
+                "\"user\": \"" + $user + "\"" +
+                 "}"
+            },
+        success:function(data){
+            if(data.status == 'ok'){
+                dataView.deleteItem(row.id);
+                grid_get_total();
+            } else{
+                alert("Se produjo un error, favor the intentarlo de nuevo ");
+            }
+        },
+        error:function(jqXHR, textStatus, errorThrown){
+            alert("Se produjo un error, favor the intentarlo de nuevo \n" + errorThrown);
+            return false;
+        }
+    });
+}

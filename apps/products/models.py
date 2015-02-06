@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 from decimal import *
+import logging
+logger = logging.getLogger(__name__)
 
 # Create your models here.
 class ProviderDetail(models.Model):
@@ -70,13 +72,18 @@ class Product(models.Model):
         return "%s : %s" % (self.slug, self.name)
 
     def as_json(self):
-        return dict(
+        logger.debug("Product's categories {0}".format(self.category.all()))
+        ret = dict(
             name = self.name,
             slug = self.slug,
             provider = self.provider.name,
-            categories = [dict(name = c.name, slug = c.slug, type = c.type) for c in self.category_set.all()],
-            line = self.line.name,
-            regular_price = self.regular_price,
-            equivalency = self.equivalency,
+            categories = [dict(name = c.name, slug = c.slug, type = c.type) for c in self.category.all()],
+
+            regular_price = str(self.regular_price),
+            equivalency = str(self.equivalency),
             description = self.description
         )
+        if(self.line):
+            ret['line'] = self.line.name
+        return ret
+

@@ -13,7 +13,7 @@ class Existence(models.Model):
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
 
 class ExistenceHistory(models.Model):
-    folio_number = models.PositiveIntegerField(_("Folio Number"))
+    folio_number = models.PositiveIntegerField(_("Folio Number"), blank=True, null=True)
     user = models.ForeignKey(User)
     branch = models.ForeignKey(Branch)
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
@@ -25,10 +25,34 @@ class ExistenceHistory(models.Model):
     )
     extra = models.CharField(_("Extra"), max_length=1024, blank=True, null=True)
 
+    def __unicode__(self):
+        return "{0}: {1} - {2}".format(self.id, self.branch.slug, self.date_time)
+
+    def as_json(self):
+        return dict(
+            id = self.id,
+            user = self.user.username,
+            branch = self.branch.slug,
+            branch_name = self.branch.name,
+            date_time = self.date_time.strftime('%d-%b-%Y %H:%M:%S'),
+            action = self.action,
+            extra = self.extra            
+        )
+
 class ExistenceHistoryDetail(models.Model):
     product = models.ForeignKey(Product)
     quantity = models.PositiveIntegerField(_("Quantity"), default = 1)
     existence = models.ForeignKey(ExistenceHistory, blank=True, null=True)
+
+    def __unicode__(self):
+        return "{0}: {1} - {2}: {3}".format(self.id, self.product.slug, self.quantity, self.existence.id)
+
+    def as_json(self):
+        return dict(
+            product = self.product.name,
+            description = self.product.description,
+            quantity = self.quantity
+        )        
 
 class Client(models.Model):
     first_name = models.CharField(_("First Name"), max_length=100, blank=True)

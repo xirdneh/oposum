@@ -7,20 +7,23 @@
 {% addtoblock "css" %}
     <link rel="stylesheet" href="{{STATIC_URL}}css/slick_grid/jquery-ui-1.8.16.custom.css" type="text/css" />
 {% endaddtoblock %}
+<a href="/inventory/manage-existence"><- Regresar</a>
+{% if eh %}
+    <ul>
+        <li><span style="font-weight:bold; font-size:20px;">Sucursal: {{ eh.branch_name }}</span></li>
+        <li>Tipo: {{ eh.action }}</li>
+        <li>Fecha: {{ eh.date_time }}</li>
+        <li>Comentarios: {{ eh.extra }} </li>
+    </ul>
+    <p> Folio: {{ eh.id }} </p>
     <div id="user_branch"></div>
-    <div class="main_fields">
-        <label for="product_code">Codigo:</label>
-        <input type="text" name="product_code" id="product_code" size="50" />
-        <label for="product_qty">Cantidad:</label>
-        <input type="number" name="product_qty" id="product_qty" size="5" value="1" step="1"/>
-    </div>
-    <div id="prod_info"></div>
+    <div id = "loading"></div>
     <div id="grid_view">
     </div>
     <div id="grid_totals"></div>
     <div id="save_form">
         <!--form action="" method="post" id="save_ticket" name="save_ticket"-->
-            <button id="btn_guardar" class="btn btn-primary btn-lg" >Guardar</button>
+           <!-- <button id="btn_guardar" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#guardar">Guardar</button> -->
         <!--/form-->
 
         <!-- MODAL -->
@@ -43,11 +46,13 @@
                 </div>
             </div>
     </div>
-
+{% else %}
+    <h1> {{ title }} </h1>
+{% endif %}
 {% addtoblock "js" %}
     <script type="text/javascript">
             balco.print_branches_selector("user_branch", {{ request.session.user_branches|safe}});
-            balco.select_init_branch("select_branches", "{{ request.session.branch_selected }}");
+            balco.select_init_branch("select_branches", "{{ eh.branch }}");
         </script>
 {% endaddtoblock %}
 {% addtoblock "js" %}
@@ -70,7 +75,6 @@
             {id:"id", name:"#", field:"id", width:50},
             {id:"slug", name:"Producto", field:"slug", width:150},
             {id:"desc", name:"Descripcion", field:"desc", width:400},
-            {id:"price", name:"Precio", field:"price", width:100},
             {id:"qty", name:"Cantidad", field:"qty", width:50}
         ];
 
@@ -92,16 +96,23 @@
         });
 
         grid.onDblClick.subscribe(function(e, args){
-            var $id = dataView.getItem(args.row).id;
-            var $r = confirm("Desea borrar el renglon: " + $id);
+            var $row = dataView.getItem(args.row);
+            var $r = confirm("Desea borrar el renglon: " + $row.id);
             if ($r == true){
-                dataView.deleteItem($id);
+                //dataView.deleteItem($row);
+                var res = delete_inv_entry($row);
             }
             grid_get_total();
         });
+
     </script>
 {% endaddtoblock %}
 {% addtoblock "js" %}
-    <script type="text/javascript" src="{{STATIC_URL}}js/entries.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}js/inventory_history.js"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        load_entries({{ entries|safe }});
+    </script>
 {% endaddtoblock %}
 {% endblock %}
