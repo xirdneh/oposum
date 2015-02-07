@@ -62,7 +62,7 @@ def print_entries_report(request, id):
         eh = ExistenceHistory.objects.get(id = id)
         ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
         response = HttpResponse(mimetype='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename=report.pdf'
+        response['Content-Disposition'] = 'filename=Reporte_Entradas_' + eh.branch.name + '_' + eh.date_time.strftime('%d-%b-%Y') + '.pdf'
         header = """
                     <para fontSize = 12>
                         Folio: <b>{0}</b> <br />
