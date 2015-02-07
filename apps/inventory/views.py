@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 import json, sys, traceback
 from datetime import datetime
-from libs.reporter import PDFReporter
+from oPOSum.libs.reporter import PDFReporter
 # Create your views here.
 import logging
 
