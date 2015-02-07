@@ -8,6 +8,6 @@ urlpatterns = patterns('oPOSum.apps.inventory.views',
     url(r'^delete-entry/?$', 'delete_entry', name="inventory_delete-entry"),
     url(r'^current-inventory/?$', 'current_inventory', name="current-inventory"),
     url(r'^save-entries/?$', 'save_entries', name="inventory_save-entries"),
-    url(r'^print-entries-report/?$', 'print_entries_report', name="inventory_print-entries-report"),
+    url(r'^print-entries-report/(?P<id>[0-9]+)/?$', 'print_entries_report', name="inventory_print-entries-report"),
     url(r'^existence-history/(?P<id>[0-9]+)/?$', 'existence_history', name="inventory_existence-history"),
 )

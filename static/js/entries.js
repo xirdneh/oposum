@@ -160,28 +160,31 @@ $("#btn_guardar").click(function(e){
                 data: $data,
                 error: function(jqXHR, textStatus, errorThrown){
                       alert("Se produjo un error al guardar los datos, favor the intentar de nuevo.\n" + errorThrown);
-            }
-            }).done(function(data){
+                },
+                success:function(data){
                 var $folio = data.folio;
                 var $total = 0;
                 var empty = [];
                 dataView.setItems(empty);
                 if(data.status == 'ok'){
-                    modal_body.html("<p style='color:#99ce2f;'> Entradas guardadas exitosamente. Desea imprimir el filio de entradas #" + data.message + "</p>");
+                    modal_body.html("<p style='color:#99ce2f;'> Entradas guardadas exitosamente. Desea imprimir el filio de entradas #" + $folio + "</p>");
                     $("#mensaje-aceptar").text("Imprimir");
                     $("#mensaje-aceptar").removeClass('btn-main');
                     $("#mensaje-aceptar").addClass('btn-success');
+                    frm_aceptar.unbind("submit");
                     frm_aceptar.submit(function(e){
                         e.preventDefault();
-                        window.location = "/inventory/print-entries-report/" + data.message;
+                        window.location = "/inventory/print-entries-report/" + $folio;
                         $("#mensaje-aceptar").text("Aceptar");
                         $("#mensaje-aceptar").removeClass('btn-success');
                         $("#mensaje-aceptar").addClass('btn-main');
+                        modal.modal('hide');
                    });
                 }
                 $("#product_code").focus();
                 $("#grid_totals").html("<strong>Total:</strong> <span id='nota_sub_total'>0.0</span>");
                 $("#nota_btn_imprimir").prop("disabled", false);
+            }
             });
         });
     });

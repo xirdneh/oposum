@@ -15,7 +15,7 @@ class InventoryEntryAdmin(admin.ModelAdmin):
 class ExistenceAdmin(admin.ModelAdmin):
     list_display = ('branch', 'product', 'quantity', 'date_time')
     list_filter = ('branch', )
-    search_Fields = ['branch', 'product']
+    search_fields = ['branch', 'product']
 
 admin.site.register(Existence, ExistenceAdmin)
 admin.site.register(ExistenceHistory)

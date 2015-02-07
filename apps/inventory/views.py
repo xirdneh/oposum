@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 import json, sys, traceback
 from datetime import datetime
+from libs.reporter import PDFReporter
 # Create your views here.
 import logging
 
@@ -43,18 +44,46 @@ def save_entries(request):
             e.quantity += q
             e.save()
             logger.debug("Existence saved: {0}".format(e))
-            ehd = ExistenceHistoryDetail(product = p, quantity = q, existence = eh)
+            try:
+                ehd = ExistenceHistoryDetail.objects.get(product = p, existence = eh)
+                ehd.quantity += q
+            except ExistenceHistoryDetail.DoesNotExist:
+                ehd = ExistenceHistoryDetail(product = p, quantity = q, existence = eh)
             ehd.save()
-
     except:
         logger.debug("Error while saving entries history \n{0}".format(traceback.format_exc()))
         return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
-    return HttpResponse("{ \"status\": \"ok\", \"message\":\"" + str(eh.id) + "\"}", mimetype="application/json")
-
+    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", mimetype="application/json")
 
 @login_required
-def print_entries_report(request):
-    pass
+def print_entries_report(request, id):
+    logger.debug("Creating Report for: {0}".format(id))
+    try:
+        eh = ExistenceHistory.objects.get(id = id)
+        ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
+        response = HttpResponse(mimetype='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=report.pdf'
+        header = """
+                    <para fontSize = 12>
+                        Folio: <b>{0}</b> <br />
+                        Sucursal: <b>{1}</b> <br />
+                        Tipo:<b> {2}</b> <br />
+                    </para>
+                 """.format(eh.id, eh.branch.name, eh.action)
+        footer = """
+                    <para fontSize = 12>
+                        Fecha: <b>{0}</b> <br />
+                        Comentarios: <b>{1}</b> <br />
+                        Balco Joyeros - Entrada de Mercancia<br/>
+                    </para>
+                """.format(eh.date_time.strftime('%d-%b-%Y'), eh.extra)
+        pdf = PDFReporter(response, 'Letter', header, footer)
+        response = pdf.print_entries(eh, ehds)
+        return response
+    except:
+        logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+
 
 @login_required
 def existence_history(request, id):
