@@ -196,20 +196,6 @@ $("#btn_guardar").click(function(e){
     modal.modal('show');
 });
 
-$("#btn_guardar").submit(function(e){
-    e.preventDefault();
-    var $now;
-    $.ajax({
-        dataType:"jsonp",
-        url:"//www.timeapi.org/utc/now.json",
-        success:function(d){
-                var $utc = new Date(d.dateString);
-                $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 6);
-            }
-    });
-    
-});
 
 $("#historial-entradas").click(function(e){
     e.preventDefault();

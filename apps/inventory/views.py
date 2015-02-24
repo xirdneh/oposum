@@ -30,6 +30,7 @@ def save_entries(request):
     u = User.objects.get(username = data['user'])
     b = Branch.objects.get(slug = data['branch'])
     details = data['details']
+
     try:
         eh = ExistenceHistory(user = u, branch = b, action = 'altas')
         eh.save();
