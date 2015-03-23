@@ -257,6 +257,8 @@ def get_migration_details( code, description ):
         area = 'R'
     elif not linea:
         area = 'J'
+    else:
+        area = 'J'
     if(len(code_arr) > 2):
         m = re.search(r'^(0?[A-Za-z]{1,2})([0-9]{1,4}\.[0-9]{1,4})', code_arr[2])
         if m:

@@ -135,7 +135,7 @@ def get_product(request, slug):
         }
         logger.debug("Producto conocido: {0}".format(p))
     except Product.DoesNotExist:
-        p = migrate.get_art(slug) 
+        p = migrate.get_art(slug.replace("-", "")) 
         if len(p) > 0 :
             p = migrate.get_migration_details( p[0][15], p[0][1] ) 
             logger.debug("Producto desconocido: {0}".format(p))
