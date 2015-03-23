@@ -357,3 +357,17 @@ def save_provs(provs):
                 prov.type="None"
                 prov.save()
                 print "Error:", sys.exc_info()[0]
+
+def import_providers():
+    provs = get_providers()
+    for prov in provs:
+        name = prov[1].decode('latin-1')
+        code = prov[2]
+        ptype = prov[-1]
+        try:
+            print "searching " + code
+            p = Provider.objects.get(sku = code)
+        except ObjectDoesNotExist:
+            print "doesn't exists adding " + name + " " + code + " " + ptype
+            p = Provider(name = name, sku = code, type = ptype)
+            p.save()
