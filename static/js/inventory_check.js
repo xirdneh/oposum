@@ -72,6 +72,7 @@ $pi.blur(function() {
                                 console.log(jqXHR);
                                 console.log(textStatus);
                                 console.log(errorThrown);
+                                frm_aceptar.unbind();
                             },
                             success:function(data){
                                 if (data.status == 'ok'){
@@ -83,6 +84,7 @@ $pi.blur(function() {
                                 $("#product_code").prop('disabled', false);
                                 modal.modal('hide');
                                 $("#product_qty").focus();
+                                frm_aceptar.unbind();
                             }
                         });
                     });

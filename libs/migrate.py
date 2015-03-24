@@ -370,4 +370,4 @@ def import_providers():
         except ObjectDoesNotExist:
             print "doesn't exists adding " + name + " " + code + " " + ptype
             p = Provider(name = name, sku = code, type = ptype)
-            p.save()
+            p.sve()
