@@ -18,7 +18,7 @@ $pi.blur(function() {
                 $prod.qty = $("#product_qty").val();
             } else if (data.status == 'ok' && data.message == 'Migrando'){
                 var modal = $("#mensaje");
-                modal.on('show.bs.modal', function(event){
+                modal.one('show.bs.modal', function(event){
                     var mod = $(this);
                     var modal_body = mod.find("#mensaje-body");
                     var body = "<div class='mensaje-modal-row'>" +
@@ -51,7 +51,7 @@ $pi.blur(function() {
                        "</div>";
                     modal_body.html(body);
                     var frm_aceptar = mod.find("#mensaje-aceptar-form");
-                    frm_aceptar.submit(function(e){
+                    frm_aceptar.one('submit', function(e){
                         e.preventDefault();
                         var json_prod = JSON.stringify($prod);
                         var csrftoken = balco.get_cookie('csrftoken');

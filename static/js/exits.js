@@ -16,84 +16,7 @@ $pi.blur(function() {
                 $prod.description + "</span> $" + $prod.price);
                 $("#product_price").val($prod.price);
                 $prod.qty = $("#product_qty").val();
-            } else if (data.status == 'ok' && data.message == 'Migrando'){
-                var modal = $("#mensaje");
-                modal.one('show.bs.modal', function(event){
-                    var mod = $(this);
-                    var modal_body = mod.find("#mensaje-body");
-                    var body = "<div class='mensaje-modal-row'>" +
-                       "<div class='mensaje-modal-cell'>Code</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.code  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Descripcion</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.description  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Linea</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.linea  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Proveedor</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.prov  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Bodega</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.bodega  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Area</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.area  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Precio</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.price  + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Peso</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.equivalency + "</div>" + 
-                       "</div><div class='mensaje-modal-row'>" + 
-                       "<div class='mensaje-modal-cell'>Linea Precio</div>" + 
-                       "<div class='mensaje-modal-cell'>" + $prod.line  + "</div>" + 
-                       "</div>";
-                    modal_body.html(body);
-                    var frm_aceptar = mod.find("#mensaje-aceptar-form");
-                    frm_aceptar.one('submit', function(e){
-                        e.preventDefault();
-                        var json_prod = JSON.stringify($prod);
-                        var csrftoken = balco.get_cookie('csrftoken');
-                        var $branch = $("#select_branches")[0].options[$("#select_branches")[0].selectedIndex].value;
-                        var data = {data: "{\"user\":\"" + $user + "\", " +
-                                           "\"branch\":\"" + $branch + "\", " +
-                                           "\"product\":" + json_prod + "} "
-                                   };
-                        $.ajax({
-                            crossDomain: false,
-                            beforeSend: function(xhr, settings){
-                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                            },
-                            type:"post",
-                            url:"/products/migrate-prod",
-                            data: data,
-                            error: function(jqXHR, textStatus, errorThrown){
-                                console.log(jqXHR);
-                                console.log(textStatus);
-                                console.log(errorThrown);
-                                frm_acpentar.unbind();
-                            },
-                            success:function(data){
-                                if (data.status == 'ok'){
-                                    $prod = data.product;
-                                    $("#prod_info").html("<em>" + $prod.slug + "</em><span>" + $prod.description + "</span> $" + $prod.price);
-                                    $("#product_price").val($prod.price);
-                                    $prod.qty = $("#product_qty").val();
-                                }
-                                $("#product_code").prop('disabled', false);
-                                modal.modal('hide');
-                                $("#product_qty").focus();
-                                frm_acpentar.unbind();
-                            }
-                        });
-                    });
-                });
-                modal.modal('show');
-            }
-            else if(data.status == 'error' && data.message == 'Producto no encontrado'){
-                window.open("/products/add-products/" + $pi.val())
-            }
+            } 
             $("#product_qty").prop('disabled', false);
             $("#product_code").prop('disabled', false);
             $("#product_qty").focus();
@@ -158,7 +81,7 @@ $("#btn_guardar").click(function(e){
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 type:"post",
-                url: "/inventory/save-entries",
+                url: "/inventory/save-exits",
                 data: $data,
                 error: function(jqXHR, textStatus, errorThrown){
                       alert("Se produjo un error al guardar los datos, favor the intentar de nuevo.\n" + errorThrown);
@@ -167,20 +90,50 @@ $("#btn_guardar").click(function(e){
                 var $folio = data.folio;
                 var $total = 0;
                 var empty = [];
-                dataView.setItems(empty);
                 if(data.status == 'ok'){
+                    dataView.setItems(empty);
                     modal_body.html("<p style='color:#99ce2f;'> Entradas guardadas exitosamente. Desea imprimir el filio de entradas #" + $folio + "</p>");
                     $("#mensaje-aceptar").text("Imprimir");
                     $("#mensaje-aceptar").removeClass('btn-main');
                     $("#mensaje-aceptar").addClass('btn-success');
                     frm_aceptar.one('submit', function(e){
                         e.preventDefault();
-                        window.location = "/inventory/print-entries-report/" + $folio;
+                        window.location = "/inventory/print-exits-report/" + $folio;
                         $("#mensaje-aceptar").text("Aceptar");
                         $("#mensaje-aceptar").removeClass('btn-success');
                         $("#mensaje-aceptar").addClass('btn-main');
                         modal.modal('hide');
                    });
+                }else{
+                    var bhtml = "";
+                    bhtml += "<p style='color:red'> No se guardaron todos los movimientos debido a que existen los siguientes errores: </p>";
+                    if(data.products){
+                        var error;
+                        for(var i = 0; i < data.products.length; i++){
+                            error = data.products[i];
+                            if(error[1] == "qty"){
+                                error[1] = "Cantidad inexistente. qty = " + error[2];
+                            } else {
+                                error[1] = "Art&iacute;culo inexistente.";
+                            }
+                            bhtml += "<div class='mensaje-modal-row'>" +
+                                "<div class='mensaje-modal-cell'>Art&iacute;culo:</div>" +
+                                "<div class='mensaje-modal-cell'>" + error[0] + "</div>"+
+                                "<div class='mensaje-modal-cell'>Error:</div>" + 
+                                "<div class='mensaje-modal-cell'>" + error[1] + "</div>"+
+                                "</div>";
+                        }
+                    } else {
+                        bhtml += "<p>Errores no especificados </p>";
+                    }
+                    modal_body.html(bhtml);
+                    $("#mensaje-aceptar").text("Aceptar");
+                    $("#mensaje-aceptar").removeClass('btn-success');
+                    $("#mensaje-aceptar").addClass('btn-danger');
+                    frm_aceptar.one('submit', function(e){
+                        e.preventDefault();
+                        modal.modal('hide');
+                    });
                 }
                 $("#product_code").focus();
                 $("#grid_totals").html("<strong>Total:</strong> <span id='nota_sub_total'>0.0</span>");
@@ -193,12 +146,14 @@ $("#btn_guardar").click(function(e){
         $("#mensaje-aceptar").text("Aceptar");
         $("#mensaje-aceptar").removeClass('btn-success');
         $("#mensaje-aceptar").addClass('btn-main');
+        var mod = $(this)
+        var frm_aceptar = mod.find("#mensaje-aceptar-form");
     });
     modal.modal('show');
 });
 
 
-$("#historial-entradas").click(function(e){
+$("#historial-salidas").click(function(e){
     e.preventDefault();
     var modal = $("#mensaje");
     modal.one('show.bs.modal', function(event){
@@ -210,7 +165,7 @@ $("#historial-entradas").click(function(e){
         frm_aceptar.one('submit', function(e){
             e.preventDefault();
             var f = $("#folio_num").val();
-            window.location = "/inventory/existence-history/" + f;
+            window.location = "/inventory/exitence-history/" + f;
         });
     });
     modal.modal('show');

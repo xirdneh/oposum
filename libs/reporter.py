@@ -26,7 +26,6 @@ class PDFReporter:
     def _header_footer(self, canvas, doc):
         canvas.saveState()
         styles = getSampleStyleSheet()
-        logging.debug("class {0}".format(self))
         header = Paragraph(self.header, styles['Normal'])
         w, h = header.wrap(doc.width, doc.topMargin)
         header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin )
@@ -44,28 +43,49 @@ class PDFReporter:
         hs = styles['Heading1']
         hs.alignment = TA_CENTER
         d.append(Paragraph('<b>Producto</b>', hs))
-        d.append(Paragraph('<b>Descripcion</b>', hs))
+        d.append(Paragraph('<b>Descripci&oacute;n</b>', hs))
         d.append(Paragraph('<b>Cantidad</b>', hs))
-        title = Paragraph('<b> Entrada de Mercancia </b>', hs)
+        if eh.printed:
+            if(eh.action == 'alta'):
+                title = Paragraph('<b> Entrada de Mercanc&iacute;a - REIMPRESI&Oacute;N</b>', hs)
+            else:
+                title = Paragraph('<b> Salida de Mercanc&iacute;a - REIMPRESI&Oacute;N</b>', hs)
+        else:   
+            if(eh.action == 'alta'):
+                title = Paragraph('<b> Entrada de Mercanc&iacute;a </b>', hs)
+            else:
+                title = Paragraph('<b> Salida de Mercanc&iacute;a </b>', hs)
         data.append(d)
+        total_qty = 0
+        sp = styles['BodyText']
+        sp.alignment = TA_CENTER
+        sq = styles['BodyText']
+        sq.alignment = TA_RIGHT
+        spb = styles['Heading3']
+        spb.alignment = TA_RIGHT
+        sl = styles['Normal']
+        sl.alignment = TA_CENTER
         for ehd in ehds:
             d = []
             d.append(ehd.product.name)
-            sp = styles['BodyText']
-            sp.alignment = TA_CENTER
             p = Paragraph(ehd.product.description, sp)
             d.append(p)
-            sq = styles['BodyText']
-            sq.alignment = TA_RIGHT
             pq = Paragraph(str(ehd.quantity), sq)
             d.append(pq)
             data.append(d)
+            total_qty += ehd.quantity
         t = Table(data, colWidths = [(letter[0] * .20), (letter[0] * .50), (letter[0] * .20)])
         ts.add('LINEBELOW', (0,1), (-1,-1), 0.25, colors.black)
         t.setStyle(ts)
         elements = []
         elements.append(title)
         elements.append(t)
+        sp
+        elements.append(Paragraph('<br /><p> <b>Cantidad total de art&iacute;culos:</b> ' + str(total_qty) + '</p>', spb))
+        if(eh.action == 'alta'):
+            elements.append(Paragraph('<br /><p> Al firmar este documento acepto que estoy reciviendo la mercanc&iacute;a listada y me responsabilizo por la mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
+        else:
+            elements.append(Paragraph('<br /><p> Al firmar este documento acepto la salida de esta mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         doc.build(elements, onFirstPage=self._header_footer, onLaterPages=self._header_footer, canvasmaker = NumberedCanvas)
         return buffer

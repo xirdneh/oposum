@@ -23,6 +23,7 @@ class ExistenceHistory(models.Model):
             (u'bajas', u'Bajas'),
         ),
     )
+    printed = models.BooleanField(_("Enabled"), default=False)
     extra = models.CharField(_("Extra"), max_length=1024, blank=True, null=True)
 
     def __unicode__(self):

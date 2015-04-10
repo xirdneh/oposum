@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+    <h1> Entradas y Salidas </h1>
+    <p> Acciones para entradas y salidas de mercanc&iacute;a </p>
+    <ul>
+        {% if request.session.branch_selected == 'None' or 'toons' in request.user.username%}
+            <li><a href="/inventory/manage-entries">Entradas</a></li>
+            <li><a href="/inventory/manage-exits">Salidas</a></li>
+        {% endif %}
+    </ul>
+{% endblock %}

@@ -6,7 +6,7 @@ from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-import json, sys, traceback
+import json, sys, traceback, pytz
 from datetime import datetime
 from oPOSum.libs.reporter import PDFReporter
 # Create your views here.
@@ -15,12 +15,19 @@ import logging
 logger = logging.getLogger(__name__)
 @login_required
 def entries(request):
-    pass
+    return render_to_response('inventory/entries.html', context_instance=RequestContext(request))
 
 @login_required
 def manage_existence(request):
-    logger.debug("Into the view")
     return render_to_response('inventory/add_existence.html', 
+                              context_instance=RequestContext(request))
+@login_required
+def manage_entries(request):
+    return render_to_response('inventory/add_existence.html', 
+                              context_instance=RequestContext(request))
+@login_required
+def manage_exits(request):
+    return render_to_response('inventory/add_exits.html', 
                               context_instance=RequestContext(request))
 
 @login_required
@@ -57,9 +64,65 @@ def save_entries(request):
     return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", mimetype="application/json")
 
 @login_required
-def print_entries_report(request, id):
+def save_exits(request):
+    data = json.loads(request.POST['data'])
+    logger.debug("Data to save for exits: {0}".format(data))
+    u = User.objects.get(username = data['user'])
+    b = Branch.objects.get(slug = data['branch'])
+    details = data['details']
+    existence = []
+    existence_errors = []
+    isFine = True
+    try:
+        eh = ExistenceHistory(user = u, branch = b, action = 'bajas')
+        for d in details:
+            p = Product.objects.get(slug = d['slug'].replace('-', ''))
+            q = int(d['qty'])
+            try:
+                e = Existence.objects.get(branch = b, product = p)
+                if(isFine and e.quantity >= q):
+                    existence.append((p, 'fine', q, e))
+                else:
+                    isFine = False
+                    if(e.quantity < q):
+                        existence_errors.append((e.product.name, 'qty', e.quantity))
+            except Existence.DoesNotExist:
+                isFine = False
+                existence_errors.append((p.name, 'exist', 0))
+            #e.quantity -= q
+            #e.save()
+            #logger.debug("Existence saved: {0}".format(e))
+        if isFine:
+            eh.save();
+            for p in existence:
+                logger.debug("p = {0}".format(p))
+                try:
+                    ehd = ExistenceHistoryDetail.objects.get(product = p[0], existence = eh)
+                    ehd.quantity += p[2]
+                except ExistenceHistoryDetail.DoesNotExist:
+                    ehd = ExistenceHistoryDetail(product = p[0], quantity = p[2], existence = eh)
+                ehd.save()
+                p[3].quantity -= p[2]
+                p[3].save()
+        else:
+            logger.debug("Error while saving exits history \n{0}".format(traceback.format_exc()))
+            error = """{{ \"status\": \"error\", 
+                                 \"message\":\"\", 
+                                 \"products\":{0}}}
+                    """.format(json.dumps(existence_errors))
+            return HttpResponse(error,
+                                mimetype="application/json")
+
+    except:
+        logger.debug("Error while saving exits history \n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", mimetype="application/json")
+
+@login_required
+def print_exits_report(request, id):
     logger.debug("Creating Report for: {0}".format(id))
     try:
+        dt_now = datetime.utcnow().replace(tzinfo = pytz.utc)
         eh = ExistenceHistory.objects.get(id = id)
         ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
         response = HttpResponse(mimetype='application/pdf')
@@ -69,17 +132,63 @@ def print_entries_report(request, id):
                         Folio: <b>{0}</b> <br />
                         Sucursal: <b>{1}</b> <br />
                         Tipo:<b> {2}</b> <br />
-                    </para>
-                 """.format(eh.id, eh.branch.name, eh.action)
+                        Fecha: <b>{3}</b> <br />
+                 """.format(eh.id, eh.branch.name, eh.action,eh.date_time.strftime('%d-%b-%Y'))
+        if eh.printed:
+            header += "<b> REIMPRESI&Oacute;N </b>"
+        header += "</para>"
         footer = """
                     <para fontSize = 12>
-                        Fecha: <b>{0}</b> <br />
+                        Fecha de impresi&oacute;n: <b>{0}</b> <br />
                         Comentarios: <b>{1}</b> <br />
-                        Balco Joyeros - Entrada de Mercancia<br/>
-                    </para>
-                """.format(eh.date_time.strftime('%d-%b-%Y'), eh.extra)
+                        Balco Joyeros - Salida de Mercanc&iacute;a<br/>
+                """.format(dt_now.strftime('%d-%b-%Y'), eh.extra)
+        if eh.printed:
+            footer += "<b> REIMPRESI&Oacute;N</b>"
+        footer += "<para>"
         pdf = PDFReporter(response, 'Letter', header, footer)
         response = pdf.print_entries(eh, ehds)
+        eh.printed = True
+        eh.save()
+        return response
+    except:
+        logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+
+
+
+@login_required
+def print_entries_report(request, id):
+    logger.debug("Creating Report for: {0}".format(id))
+    try:
+        dt_now = datetime.utcnow().replace(tzinfo = pytz.utc)
+        eh = ExistenceHistory.objects.get(id = id)
+        ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
+        response = HttpResponse(mimetype='application/pdf')
+        response['Content-Disposition'] = 'filename=Reporte_Entradas_' + eh.branch.name + '_' + eh.date_time.strftime('%d-%b-%Y') + '.pdf'
+        header = """
+                    <para fontSize = 12>
+                        Folio: <b>{0}</b> <br />
+                        Sucursal: <b>{1}</b> <br />
+                        Tipo:<b> {2}</b> <br />
+                        Fecha: <b>{3}</b> <br />
+                 """.format(eh.id, eh.branch.name, eh.action,eh.date_time.strftime('%d-%b-%Y'))
+        if eh.printed:
+            header += "<b> REIMPRESI&Oacute;N </b>"
+        header += "</para>"
+        footer = """
+                    <para fontSize = 12>
+                        Fecha de impresi&oacute;n: <b>{0}</b> <br />
+                        Comentarios: <b>{1}</b> <br />
+                        Balco Joyeros - Entrada de Mercanc&iacute;a<br/>
+                """.format(dt_now.strftime('%d-%b-%Y'), eh.extra)
+        if eh.printed:
+            footer += "<b> REIMPRESI&Oacute;N</b>"
+        footer += "<para>"
+        pdf = PDFReporter(response, 'Letter', header, footer)
+        response = pdf.print_entries(eh, ehds)
+        eh.printed = True
+        eh.save()
         return response
     except:
         logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
