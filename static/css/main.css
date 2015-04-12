@@ -114,3 +114,31 @@ Modal Grid
     display:inline-block;
     font-weight:bold;
 }
+
+/***************************************************
+TABLES
+****************************************************/
+.balco-table {
+    width:100%;
+    border:1px solid black;
+}
+
+.balco-table thead {
+    background:#ccc;
+    font-weight:bold;
+}
+
+.balco-table thead tr{
+    
+}
+
+.balco-table thead tr th, .balco-table tbody tr td {
+    padding:5px;
+    text-align:center;
+    border:1px solid black;
+}
+
+.sales-array-table, .sales-sum-table {
+    width:90%;
+    margin:0 auto;
+}

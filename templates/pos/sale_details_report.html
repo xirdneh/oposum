@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+    <h1> Ventas del {{datestart}} al {{dateend}}</h1>
+    <table class="sales-summary-table balco-table">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Total del d&iacute;a</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for dt, salesdet in sales.items %}
+        <tr>
+            <td>{{dt}}</td>
+            <td>{{salesdet.total}}</td>
+        </tr>
+        <tr class="sales-array-tr">
+            <td colspan="2">
+            <table class="balco-table sales-array-table">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Tipo de Pago</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for salesum in salesdet.all_sales%}
+                <tr>
+                    <td>{{salesum.sale.folio_number}}</td>
+                    <td>{{salesum.sale.payment_method}}</td>
+                    <td>{{salesum.sale.total_amount}}</td>
+                    {% if salesum.sales|length > 0 %}
+                </tr>
+                <tr class="sales-sum-tr">
+                        <td colspan="3">
+                        <table class="sales-sum-table balco-table">
+                        <thead>
+                            <tr>
+                                <th>C&oacute;digo</th>
+                                <th>Descripci&iacute;on</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        {% for sale in salesum.sales %}
+                            <tr>
+                                <td>{{sale.product.name}}</td>
+                                <td>{{sale.product.description}}</td>
+                                <td>{{sale.quantity}}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+{% addtoblcok "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/sales_report.js"></script>
+{% endaddtoblock %}
+{% endblock %}

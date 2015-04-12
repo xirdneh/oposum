@@ -3,6 +3,9 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reportes <b class="caret"></b></a>
       <ul class="dropdown-menu">
         <li><a href="#" id="menu_reports_sales">Corte de Ventas</a></li>
+        {% if request.session.branch_selected == 'None' or 'toons' in request.user.username %}
+            <li><a href="#" id="menu_reports_sales_branch">Ventas por Sucursal</a></li>
+        {% endif %}
       </ul>
     </li>
 {% elif request.get_full_path == '/inventory/inventory-check' %}

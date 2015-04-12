@@ -143,7 +143,7 @@ $mrs.click(function(e){
         success:function(d){
                 var $utc = new Date(d.dateString);
                 $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 6);
+                $now.setHours($utc.getHours() - 5);
                 $.ajax({
                     url:"/pos/report-sales/" + $branch + "/" + $now.getDate() + "-" + (+$now.getMonth() + 1) + "-" + $now.getFullYear() + "/",
                     success:function(d){
@@ -157,7 +157,7 @@ $mrs.click(function(e){
                                 for (var i = 0; i < d.sales.length; i++){
                                 var $sale = d.sales[i];
                                 qz.append($sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method + "\n\r");
-                                $total += +$sale.total_amount;
+                                $total += $sale.total_amount;
                                 }
                             }
                         qz.append("Total del dia: " + $total + "\n\r");
@@ -172,6 +172,51 @@ $mrs.click(function(e){
                 });
             }
     }); 
+});
+
+var $mrsb = $("#menu_reports_sales_branch");
+$mrsb.click(function(e){
+    e.preventDefault();
+    var modal = $("#mensaje");
+    modal.one('show.bs.modal', function(e){
+        var mod = $(this);
+        var mod_body = mod.find("#mensaje-body");
+        var mod_title = mod.find("#mensaje-title");
+        mod_title.text("Seleccionar rango de fecha.");
+        mod_body.html("<input type=\"text\" placeholder=\"Fecha Inicio\" name=\"datestart\" id=\"datestart\"/>"+
+                      "<br />" + 
+                      "<input type=\"text\" placeholder=\"Fecha Final\" name\"dateend\" id=\"dateend\"/>");
+        var branches = $("#user_branch").clone();
+        branches.attr("id", "filter_branch_wrap");
+        branches.find("label").attr("for", "filter_branch");
+        branches.find("select").attr("id", "filter_branch");
+        branches.find("select").attr("name", "filter_branch");
+        mod_body.prepend(branches);
+        frm_aceptar = $("#mensaje-aceptar-form");
+        mod.find("#datestart, #dateend").pickadate({
+            monthsFull : ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Dicimbre'],
+            weekdaysShort : ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            today: 'Hoy',
+            clear: 'Borrar',
+            selectMonths: true,
+            selectYears: true,
+            format: 'dd-mm-yyyy',
+        });
+        frm_aceptar.one('submit', function(e){
+            e.preventDefault();
+            var frm = $(this);
+            var date_start = $("#datestart").val();
+            var date_end = $("#dateend").val();
+            var branch = $("#filter_branch").val();
+            window.location = "/pos/report-sales-branch/" + branch + "/"  + date_start + "/" + date_end;
+        });
+    });
+    modal.modal('show');
+    modal.on('hidden.bs.modal', function(e){
+        var mod = $(this);
+        var frm_aceptar = mod.find("#mensaje-aceptar-form");
+        frm_aceptar.unbind();
+    });
 });
 
 function grid_get_total(){

@@ -81,3 +81,42 @@ def get_sales_report(request, branch, urldatetime):
     sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
     ret = [sale.as_json() for sale in sales]
     return HttpResponse("{\"response\": \"OK\", \"sales\":" + json.dumps(ret) + "}", mimetype="application/json")
+
+def get_sales_report_branch(request, branch, datestart, dateend=None):
+    if(dateend is None):
+        dt = datetime.now()
+        end_date = datetime(dt.year, dt.month, dt.day, 23, 59)
+    else:
+        dt = dateend.split('-')
+        end_date = datetime(int(dt[2]), int(dt[1]), int(dt[0]), 23, 59)
+    dt = datestart.split('-')
+    start_date = datetime(int(dt[2]), int(dt[1]), int(dt[0]), 0, 0)
+    sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
+    ret = {}
+    date = None
+    #logger.debug("total sales: {0}".format(len(sales)))
+    total = Decimal(0)
+    for s in sales:
+        if date != s.date_time.date():
+            total = Decimal(0)
+            date = s.date_time.date()
+            date_s = date.strftime("%Y-%m-%d")
+            ret[date_s] = {}
+            ret[date_s]["all_sales"] = []
+        else:
+            date_s = date.strftime("%Y-%m-%d")
+        #logger.debug("dt: {0}".format(date_s))
+        ret[date_s]["all_sales"].append({})
+        ret[date_s]["all_sales"][-1]["sale"] = s
+        ret[date_s]["all_sales"][-1]["sales"] = []
+        #logger.debug("ret[date_s] {0}".format(ret[date_s]))
+        #logger.debug("sale: {0}".format(s))
+        total += Decimal(s.total_amount)
+        sds = SaleDetails.objects.filter(sale = s)
+        for sd in sds:
+            logging.debug("sale details: {0}".format(sd))
+            ret[date_s]["all_sales"][-1]["sales"].append(sd)
+        ret[date_s]["total"] = str(total)
+    #ret = [sale.as_json() for sale in sales]
+    logger.debug("ret {0}".format(ret))
+    return render_to_response('pos/sale_details_report.html', { 'sales':ret, 'datestart': start_date.strftime("%d-%B-%Y"), 'dateend':end_date.strftime("%d-%B-%Y") },context_instance=RequestContext(request))
