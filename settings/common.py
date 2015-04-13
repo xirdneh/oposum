@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'oPOSum.apps.products',
     'oPOSum.apps.inventory',
     'oPOSum.apps.pos',
+    'oPOSum.apps.layaway',
     'oPOSum.apps.authentication',
     'oPOSum.libs',
 )

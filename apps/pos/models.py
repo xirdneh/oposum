@@ -43,20 +43,6 @@ class SaleDetails(models.Model):
     def __unicode__(self):
         return "%s: %f" % (self.sale, self.over_price)
 
-class Layaway(models.Model):
-    client = models.ForeignKey(Client)
-    product = models.ManyToManyField(Product)
-    user = models.ForeignKey(User)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
-    amount_to_pay = models.DecimalField(_("Amount to Pay"), max_digits=10, decimal_places=2)
-    folio_number = models.PositiveIntegerField(_("Folio Number"))
-
-class LayawayHistory(models.Model):
-    amount = models.DecimalField(_("Amount"), max_digits=10, decimal_places=2)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
-    folio_number = models.PositiveIntegerField(_("Folio Number"))
-    layaway = models.ForeignKey(Layaway)
-
 class POSFolio(models.Model):
     name = models.CharField(_("Name"), max_length=255)
     value = models.PositiveIntegerField(_("Value"))

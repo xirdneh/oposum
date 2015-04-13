@@ -46,12 +46,12 @@ class PDFReporter:
         d.append(Paragraph('<b>Descripci&oacute;n</b>', hs))
         d.append(Paragraph('<b>Cantidad</b>', hs))
         if eh.printed:
-            if(eh.action == 'alta'):
+            if(eh.action == 'altas'):
                 title = Paragraph('<b> Entrada de Mercanc&iacute;a - REIMPRESI&Oacute;N</b>', hs)
             else:
                 title = Paragraph('<b> Salida de Mercanc&iacute;a - REIMPRESI&Oacute;N</b>', hs)
         else:   
-            if(eh.action == 'alta'):
+            if(eh.action == 'altas'):
                 title = Paragraph('<b> Entrada de Mercanc&iacute;a </b>', hs)
             else:
                 title = Paragraph('<b> Salida de Mercanc&iacute;a </b>', hs)
@@ -82,7 +82,7 @@ class PDFReporter:
         elements.append(t)
         sp
         elements.append(Paragraph('<br /><p> <b>Cantidad total de art&iacute;culos:</b> ' + str(total_qty) + '</p>', spb))
-        if(eh.action == 'alta'):
+        if(eh.action == 'altas'):
             elements.append(Paragraph('<br /><p> Al firmar este documento acepto que estoy reciviendo la mercanc&iacute;a listada y me responsabilizo por la mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
         else:
             elements.append(Paragraph('<br /><p> Al firmar este documento acepto la salida de esta mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))

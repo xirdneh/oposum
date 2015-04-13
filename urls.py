@@ -17,6 +17,7 @@ urlpatterns = patterns('',
     url(r'^login/?$', 'oPOSum.apps.authentication.views.login_user', name="login"),
     url(r'^logout/?$', 'oPOSum.apps.authentication.views.logout_user', name="logout"),
     url(r'^products/', include('oPOSum.apps.products.urls')),
+    url(r'^pos/layaway/', include('oPOSum.apps.layaway.urls')),
     url(r'^pos/', include('oPOSum.apps.pos.urls')),
     url(r'^inventory/', include('oPOSum.apps.inventory.urls')),
 )
