@@ -2,6 +2,7 @@ from django.shortcuts import render, render_to_response
 from django.core.urlresolvers import reverse
 from oPOSum.apps.products.forms import *
 from oPOSum.apps.products.models import *
+from oPOSum.libs import utils as pos_utils
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 import json
@@ -123,6 +124,10 @@ def get_product(request, slug):
     logger.debug("Buscando producto con slug: {0}".format(slug))
     try:
         p = Product.objects.get(slug=slug.replace("-",""))
+        if p.regular_price == Decimal('0.00'):
+            retail_price = p.equivalency * p.line.price
+        else:
+            retail_price = p.regular_price
         ret = {
             'status':'ok',
             'message': 'Existente',
@@ -130,7 +135,8 @@ def get_product(request, slug):
                 {
                     'slug':p.slug, 
                     'price':str(p.regular_price), 
-                    'description':p.description
+                    'description':p.description,
+                    'retail_price':str(round(retail_price,2))
                 }
         }
         logger.debug("Producto conocido: {0}".format(p))

@@ -55,21 +55,6 @@ class ExistenceHistoryDetail(models.Model):
             quantity = self.quantity
         )        
 
-class Client(models.Model):
-    first_name = models.CharField(_("First Name"), max_length=100, blank=False)
-    last_name = models.CharField(_("Last Name"), max_length = 512, blank=False)
-    phonenumber = models.CharField(_("Phone Number"), max_length=512, blank=False)
-    address = models.TextField(_("Address"), max_length=1024, blank=True)
-    id_type = models.CharField(_("ID Type"), max_length=50, blank=True, default='IFE',
-              choices=(
-                ('IFE', 'IFE (Credencial de Elector'),
-                ('LICENCIA', 'Licencia de conducir'),
-                ('PASAPORTE', 'Pasaporte'),
-                ('OTRO', 'Otro'),
-              ))
-    id_number = models.TextField(_("Identification Number"), max_length=255, blank=True)
-    email = models.EmailField(_("Email"), max_length = 255, blank=True)
-
 class InventoryFolio(models.Model):
     name = models.CharField(_("Name"), max_length=255)
     value = models.PositiveIntegerField(_("Value"))

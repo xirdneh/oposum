@@ -27,3 +27,20 @@ class Branch(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.name)
+
+    def as_json(self):
+        ret = dict(
+            slug = self.slug,
+            name = self.name,
+        )
+        if not self.ticket_pre is None:
+            ticket_pre = self.ticket_pre.encode('latin-1'),
+        else:
+            ticket_pre = ""
+        if not self.ticket_post is None:
+            ticket_post = self.ticket_post.encode('latin-1')
+        else:
+            ticket_post = ""
+        ret['ticket_pre'] = ticket_pre
+        ret['ticket_post'] = ticket_post
+        return ret

@@ -11,6 +11,9 @@ class Employee(models.Model):
     def __unicode__(self):
         return "%s's Account" % (self.user)
 
+    def get_branches_slugs(self):
+        return [b.slug for b in self.branch.all()]
+
 def create_employee(sender, instance, created, **kwargs):
     if created:
         profile, created = Employee.objects.get_or_create(user=instance)

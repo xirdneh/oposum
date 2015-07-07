@@ -83,7 +83,7 @@ class PDFReporter:
         sp
         elements.append(Paragraph('<br /><p> <b>Cantidad total de art&iacute;culos:</b> ' + str(total_qty) + '</p>', spb))
         if(eh.action == 'altas'):
-            elements.append(Paragraph('<br /><p> Al firmar este documento acepto que estoy reciviendo la mercanc&iacute;a listada y me responsabilizo por la mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
+            elements.append(Paragraph('<br /><p> Al firmar este documento acepto que estoy recibiendo la mercanc&iacute;a listada y me responsabilizo por la mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
         else:
             elements.append(Paragraph('<br /><p> Al firmar este documento acepto la salida de esta mercanc&iacute;a. <br /><br /><br/> Nombre:_____________________ Firma: _____________________________</p>',sl))
         doc = SimpleDocTemplate(buffer, pagesize=letter)

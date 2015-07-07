@@ -80,10 +80,19 @@ class Product(models.Model):
             categories = [dict(name = c.name, slug = c.slug, type = c.type) for c in self.category.all()],
 
             regular_price = str(self.regular_price),
+            retail_price = str(self.get_retail_price()),
             equivalency = str(self.equivalency),
             description = self.description
         )
         if(self.line):
             ret['line'] = self.line.name
         return ret
+
+    def get_retail_price(self):
+        retail_price = Decimal(0.0)
+        if self.regular_price == Decimal('0.00'):
+            retail_price = self.equivalency * self.line.price
+        else:
+            retail_price = self.regular_price
+        return retail_price
 

@@ -19,7 +19,7 @@ class ExistenceAdmin(admin.ModelAdmin):
 
 admin.site.register(Existence, ExistenceAdmin)
 admin.site.register(ExistenceHistory)
-admin.site.register(Client)
+#admin.site.register(Client)
 admin.site.register(ExistenceHistoryDetail)
 admin.site.register(Inventory)
 admin.site.register(InventoryEntry, InventoryEntryAdmin)

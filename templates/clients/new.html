@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+
+    <h1> Clientes </h1>
+    <p> Administraci&oacute;n de Clientes </p>
+        {% if message %}
+    <p class="success_message" style="font-weight:bold;">
+            {{ message }}
+    </p>
+        {% endif %}
+    {% if client %}
+        <a href="/clients/new" class="btn btn-info">Crear Nuevo Cliente</a>
+        <table class="table  table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellidos</th>
+                    <th>Teléfono</th>
+                    <th>Correo electrónico (email)</th>
+                    <th>Identificación</th>
+                    <th>Saldo de Separados</th>
+                    <th>Saldo de Reparaciones</th>
+                    <th>Reparaciones pendientes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{client.first_name}}</td>
+                    <td>{{client.last_name}}</td>
+                    <td>{{client.phonenumber}}</td>
+                    <td>{{client.email}}</td>
+                    <td>{{client.id_type}} : {{client.id_number}}</td>
+                    <td>{{client.get_layaway_debt|stringformat:"0.2f"}}</td>
+                    <td>{{client.get_repairshop_debt|stringformat:"0.2f"}}</td>
+                    <td>{{client.get_repairshop_pending_tickets}}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% if 'layaway' in apps%}
+            <h2>Separados Pendientes</h2>
+            <button id="layaway_add" class="btn btn-info">Agregar Separado</button>
+            {% if layaways|length > 0 %}
+            <table class="table table-striped">
+                <thead>
+                    <th>Sucursal</th>
+                    <th>Fecha Creado (dd/MM/yy)</th>
+                    <th>Total</th>
+                    <th>Saldo Pendiente</th>
+                </thead>
+                <tbody>
+                    {% for l in layaways %}
+                        <tr>
+                            <td>{{l.layaway.branch.name}}</td>
+                            <td>{{l.layaway.date_time|date:"d/m/y"}}</td>
+                            <td>{{l.layaway.amount_to_pay|stringformat:"0.2f"}}</td>
+                            <td>{{l.layaway.get_debt_amount|stringformat:"0.2f"}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                        <table class="table table-striped" style="width:60%; margin:0 auto;">
+                            <tbody>
+                            <tr>
+                                <td colspan="4" style="text-align:center;">
+                                    <span style="font-weight:bold;">Último abono <span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    {{l.last_payment.branch}}
+                                </td>
+                                <td>
+                                    {{l.last_payment.date_time|date:"d/m/y"}} 
+                                </td>
+                                <td>
+                                    {{l.last_payment.amount|stringformat:"0.2f"}}
+                                </td>
+                                <td>
+                                    {% if l.layaway.get_debt_amount|stringformat:"0.2f" != "0.00" %}
+                                        <button class="btn btn-success btn-sm add-payment" data-lid = "{{l.layaway.id}}" data-ldebt = "{{l.layaway.get_debt_amount|stringformat:"0.2f"}}" data-total="{{l.layaway.amount_to_pay|stringformat:"0.2f"}}">Agregar Abono</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        {% endif %}
+        {% if 'repairshop' in apps %}
+            {% comment %}
+                TODO: Implement reparishop quick view.
+            {% endcomment %}
+        {% endif %}
+    {% else %}
+    <div class="client-form standard-form">
+        <form action="" method="post" id="client-form" name="client-form">
+        {% csrf_token %}
+        {% for field in form %}
+            {% if field.is_hidden %}
+                {{ field }}
+            {% else %}
+                <div class="form_field_wrapper">
+                    {{ field.errors }}
+                    {{ field.label_tag }}
+                    {{ field }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <button type="submit">Guardar</button>
+        </form>
+    </div>
+    {% endif %}
+    <!-- MODAL -->
+            <div class="modal fade" id="mensaje" tabindex="-1" rolde="dialog" arial-labelledby="mensaje" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="mensaje-title">Verificar detalles del producto</h4>
+                        </div>
+                        <div class="modal-body" id="mensaje-body">
+                        </div>
+                        <div class="modal-footer">
+                             <button type="button" class="pull-left btn btn-default" data-dismiss="modal">Cancelar</button>
+                             <form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form">
+                                 <button type="submit" id="mensaje-aceptar" class="btn btn-primary">Aceptar</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+{% addtoblock "js" %}
+    <script src="{{STATIC_URL}}js/forms.js" type="text/javascript"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        balco.deleteSuccessMessage();
+    </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+            balco.user_branches = {{ request.session.user_branches|safe}};
+            balco.user_branch_selected = "{{ request.session.branch_selected }}";
+        </script>
+{% endaddtoblock %}
+{% if client %}
+    {% addtoblock "js" %}
+        <script type="text/javascript">
+            if(!balco.layaway){
+                balco.layaway = {};
+            }
+            balco.layaway.client_id = {{client.id}};
+        </script>
+    {% endaddtoblock %}
+{% endif %}
+{% addtoblock "js" %}
+    <script src="{{STATIC_URL}}js/layaway.js" type="text/javascript"></script>
+{% endaddtoblock %}
+<script type="text/javascript" src="{{STATIC_URL}}js/deployJava.js"></script>
+<script type="text/javascript">
+    deployQZ();
+    function deployQZ() {
+		var attributes = {id: "qz", code:'qz.PrintApplet.class', 
+			archive:'/static/qz-print.jar', width:1, height:1};
+		var parameters = {jnlp_href: '/static/qz-print_jnlp.jnlp', 
+			cache_option:'plugin', disable_logging:'false', 
+			initial_focus:'false', printer:'zebra'};
+		if (deployJava.versionCheck("1.7+") == true) {}
+		else if (deployJava.versionCheck("1.6+") == true) {
+			attributes['archive'] = 'jre6/qz-print.jar';
+			parameters['jnlp_href'] = 'jre6/qz-print_jnlp.jnlp';
+		}
+		deployJava.runApplet(attributes, parameters, '1.5');
+	}
+
+    function qzReady(){
+        window["qz"] = document.getElementById('qz');
+    }
+	function isLoaded() {
+		if (!qz) {
+			alert('Error:\n\n\tNo se encuentra el Plugin');
+			return false;
+		} else {
+			try {
+				if (!qz.isActive()) {
+					alert('Error:\n\n\tEl Plugin no esta activo');
+					return false;
+				}
+			} catch (err) {
+				alert('Error:\n\n\tNo esta el Plugin instalado');
+				return false;
+			}
+		}
+		return true;
+	}
+ 	function notReady() {
+		// If applet is not loaded, display an error
+		if (!isLoaded()) {
+			return true;
+		}
+		// If a printer hasn't been selected, display a message.
+		else if (!qz.getPrinter()) {
+			alert('No hay impresora');
+			return true;
+		}
+		return false;
+	}
+	
+    function printESCP(str) {
+		if (notReady()) { return; }
+            qz.append(str);
+			qz.print();
+	}
+	function findPrinter(name) {
+		// Get printer name from input box
+		var p = {};
+		if (name) {
+			p.value = name;
+		}
+		
+		//if (isLoaded()) {
+			// Searches for locally installed printer with specified name
+			qz.findPrinter(p.value);
+			
+			// Automatically gets called when "qz.findPrinter()" is finished.
+			window['qzDoneFinding'] = function() {
+				var p = document.getElementById('printer');
+				var printer = qz.getPrinter();
+				window['qzDoneFinding'] = null;
+			};
+		//}
+	}
+	function chr(i) {
+		return String.fromCharCode(i);
+	}
+    findPrinter('zebra');
+</script>
+
+{% endblock %}

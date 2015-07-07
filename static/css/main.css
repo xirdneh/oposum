@@ -36,26 +36,26 @@ body {
     text-align:right;
 }
 
-.products_form {
+.standard-form {
     border:1px solid #888;
     padding:5px;
 }
 
-.products_form .form_field_wrapper {
+.standard-form .form_field_wrapper {
     margin:2px 0px;
 }
 
-.products_form .form_field_wrapper label {
+.standard-form .form_field_wrapper label {
     width:100px;
     text-align:right;
     padding-right:10px;
 }
 
-.products_form .form_field_wrapper .selector {
+.standard-form .form_field_wrapper .selector {
     margin-left:110px;
 }
 
-.products_form .form_field_wrapper:nth-child(odd) {
+.standard-form .form_field_wrapper:nth-child(odd) {
     background: #eee;
     padding:3px 0px;
 }

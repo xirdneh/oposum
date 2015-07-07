@@ -12,7 +12,7 @@
 
     <form action="/products/edit-products/" method="post">
         {% csrf_token %}
-        <div class="products_form">
+        <div class="products_form standard-form">
             {% for field in edit_form %}
                 <div class="form_field_wrapper">
                     {{ field.errors }}

@@ -3,9 +3,49 @@ from django.utils.translation import ugettext as _
 from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
-from oPOSum.apps.inventory.models import Client
 
 # Create your models here.
+class SaleManager(models.Manager):
+    def get_sales(self, branch, datestart, dateend):
+        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
+        return sales
+
+    def get_sales_structure(self, branch, datestart, dateend):
+        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        ret = {}
+        date = None
+        #logger.debug("total sales: {0}".format(len(sales)))
+        total = Decimal(0)
+        for s in sales:
+            if date != s.date_time.date():
+                total = Decimal(0)
+                date = s.date_time.date()
+                date_s = date.strftime("%Y-%m-%d")
+                ret[date_s] = {}
+                ret[date_s]["all_sales"] = []
+            else:
+                date_s = date.strftime("%Y-%m-%d")
+            #logger.debug("dt: {0}".format(date_s))
+            ret[date_s]["all_sales"].append({})
+            ret[date_s]["all_sales"][-1]["sale"] = s
+            ret[date_s]["all_sales"][-1]["sales"] = []
+            #logger.debug("ret[date_s] {0}".format(ret[date_s]))
+            #logger.debug("sale: {0}".format(s))
+            total += Decimal(s.total_amount)
+            sds = SaleDetails.objects.filter(sale = s)
+            for sd in sds:
+                logging.debug("sale details: {0}".format(sd))
+                ret[date_s]["all_sales"][-1]["sales"].append(sd)
+            ret[date_s]["total"] = str(total)
+        #ret = [sale.as_json() for sale in sales]
+        logger.debug("ret {0}".format(ret))
+        return ret
+
+    def get_sales_json(self, branch, datestart, dateend):
+        sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        ret = [sale.as_json() for sale in sales]
+        return ret
+
 class Sale(models.Model):
     #product = models.ManyToManyField(Product)
     #quantity = models.PositiveIntegerField(_("Quantity"), default=1)
@@ -17,6 +57,7 @@ class Sale(models.Model):
     payment_amount = models.DecimalField(_("Payment Amount"), max_digits = 10, decimal_places=2)
     extra = models.CharField(_("Extra"), max_length=1024, blank=True, null=True)
     folio_number = models.PositiveIntegerField(_("Folio Number"))
+    objects = SaleManager()
 
     def __unicode__(self):
         return "%s: %s" % (self.branch, str(self.folio_number))

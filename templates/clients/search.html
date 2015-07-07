@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+
+<h1>Listado de Clients</h1>
+<p> Haz doble click en un cliente para ver los detalles o agregar Separados o Reparaciones </p>
+    <form method="get">
+        <input type="text" name="q" />
+        <button type="submit" class="btn btn-default">Buscar</button>
+    </form>
+    <p><a class="btn btn-info" href="/clients/new">Agregar nuevo cliente</a></p>
+
+{% if clients and clients|length > 0 %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Teléfono</th>
+                <th>Correo electrónico (email)</th>
+                <th>Identificación</th>
+                <th>Saldo de Separados</th>
+                <th>Saldo de Reparaciones</th>
+                <th>Reparaciones pendientes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+                <tr id='{{client.id}}'>
+                    <td><a href="/clients/new/{{client.id}}">{{client.first_name}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.last_name}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.phonenumber}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.email}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.id_type}} : {{client.id_number}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.get_layaway_debt}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.get_repairshop_debt}}</a></td>
+                    <td><a href="/clients/new/{{client.id}}">{{client.get_repairshop_pending_tickets}}</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}

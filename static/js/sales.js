@@ -137,34 +137,90 @@ $mrs.click(function(e){
     e.preventDefault();
     var $branch = $("#select_branches")[0].options[$("#select_branches")[0].selectedIndex].value;
     var $now;
+    var url = "";
+    if(!balco.debug){
+        url = "//www.timeapi.org/utc/now.json"
+    } else {
+        url = "/utc/now.json";
+    }
     $.ajax({
         dataType:"jsonp",
         url:"//www.timeapi.org/utc/now.json",
         success:function(d){
                 var $utc = new Date(d.dateString);
                 $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 5);
                 $.ajax({
                     url:"/pos/report-sales/" + $branch + "/" + $now.getDate() + "-" + (+$now.getMonth() + 1) + "-" + $now.getFullYear() + "/",
-                    success:function(d){
+                    success:function(data){
+                        var d = data.data;
                         console.log("here");
-                        if (!notReady()) {
-                            qz.append($branch + "\n\r");
+                        var print = true;
+                        if(balco.debug){
+                            print = true;
+                        }
+                        else{
+                            print = !notReady();
+                        }
+                        if (print) {
+                            var tb = "";
+                            tb += "\t============= Reporte del Dia =============";
+                            tb += "\n\r" + $branch + "\n\r";
                             var $total = 0;
+                            var $totales = {};
                             if (d.sales.length > 0){
-                                qz.append(d.sales[0].date_time.split(" ")[0] + "\n\r");
-                                qz.append("Folio   Total    Metodo\n\r");
+                                tb += "\n\r *********** Ventas ***********";
+                                tb += "\n\r" + d.sales[0].date_time.split(" ")[0] + "\n\r";
+                                tb += "Folio \t  Total \t Metodo\n\r";
                                 for (var i = 0; i < d.sales.length; i++){
-                                var $sale = d.sales[i];
-                                qz.append($sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method + "\n\r");
-                                $total += $sale.total_amount;
+                                    var $sale = d.sales[i];
+                                    tb += $sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method + "\n\r";
+                                    $total += parseFloat($sale.total_amount);
+                                    if(!$totales[$sale.payment_method]){
+                                        $totales[$sale.payment_method] = parseFloat($sale.total_amount);
+                                    }
+                                    else{
+                                        $totales[$sale.payment_method] += parseFloat($sale.total_amount);
+                                    }
                                 }
                             }
-                        qz.append("Total del dia: " + $total + "\n\r");
-                        qz.append("\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r");
-                        qz.append(chr(27) + chr(105));
-                        qz.append("\x1B\x69");
-                        qz.print();
+                            if (d.payments && d.payments.length > 0){
+                                tb += "\n\r\n\r\n\r *********** Separados / Abonos ***********";
+                                tb += "\n\r" + d.payments[0].date_time.split(" ")[0] + "\n\r";
+                                tb += "Folio \t Total \t Metodo\n\r";
+                                for (var i = 0; i < d.payments.length; i++){
+                                    var $payment = d.payments[i];
+                                    var $layaway = $payment.layaway;
+                                    tb += $payment.id + "\t" + $payment.amount + "\t" + $payment.type + "\n\r";
+                                    tb += "\t" + $layaway.id + "   " + $layaway.client.first_name + " " + $layaway.client.last_name + "   " + $layaway.total_debt_amount;
+                                    if($layaway.products.length > 0){
+                                        for(var j = 0; j < $layaway.products.length; j++){
+                                        var $p = $layaway.products[j];
+                                        tb += "\n\r\t\t" + $p.product.name + "  " +  $p.product.retail_price + "   " + $p.qty;
+                                        }
+                                    }
+                                    $total += parseFloat($payment.amount);
+                                    if(!$totales[$payment.type]){
+                                        $totales[$payment.type] = parseFloat($payment.amount);
+                                    }else{
+                                        $totales[$payment.type] += parseFloat($payment.amount);
+                                    }
+                                }
+                            }
+                            for(var t in $totales){
+                                tb += "Total en " + t + " : " + $totales[t] + " \n\r";
+                            }
+                            tb += "Total del dia: " + $total + "\n\r";
+                            tb += "\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r";
+                            tb += chr(27) + chr(105);
+                            tb += "\x1B\x69";
+                            if(!balco.debug){    
+                                qz.append(tb);
+                                qz.print();
+                            }else{
+                                if(console){
+                                    console.log(tb);
+                                }
+                            }
                         } else {
                             window.alert("Hay un error con la impresora. Presione la tecla F5 en el teclado y si aparece una ventana gris seleccione el recuadro que esta en la parte de abajo para que se aparezca una paloma y despues el boton que dice 'Run...'");
                         }
@@ -260,7 +316,7 @@ $("#save_ticket").submit(function(e){
         success:function(d){
                 var $utc = new Date(d.dateString);
                 $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 6);
+                $now.setHours($utc.getHours() - 5);
             }
     });
     $("#nota_btn_imprimir").prop("disabled", true);
@@ -301,10 +357,10 @@ $("#save_ticket").submit(function(e){
                                        + (+$now.getMonth() + 1) + '/' 
                                        + $now.getFullYear() + '\n\r');
             qz.append('\n\r\t Folio: ' + $folio + '\n\r');
+            qz.append("# \tCodigo\tPrecio\tCantidad\n\r\n\r");
             for(var i =0; i < dataView.getItems().length; i++){
                 var item = dataView.getItems()[i];
                 $total += +item.price * +item.qty;
-                qz.append("# \tCodigo\tPrecio\tCantidad\n\r\n\r");
                 qz.append(item.id + " \t " + item.slug + " \t " + item.price + " \t " + item.qty + "\n\r");
                 if (item.desc != ""){
                     qz.append("\t" + item.desc + "\n\r");
@@ -333,9 +389,9 @@ $("#save_ticket").submit(function(e){
                                        + (+$now.getMonth() + 1) + '/' 
                                        + $now.getFullYear() + '\n\r');
             qz.append('\n\r\t Folio: ' + $folio + '\n\r');
+            qz.append("# \tCodigo\tPrecio\tCantidad \n\r\n\r");
             for(var i =0; i < dataView.getItems().length; i++){
                 item = dataView.getItems()[i];
-                qz.append("# \tCodigo\tPrecio\tCantidad \n\r\n\r");
                 qz.append(item.id + " \t " + item.slug + " \t " + item.price + " \t " + item.qty + "\n\r");
                 qz.append("\t" + item.desc + "\n\r");
             }

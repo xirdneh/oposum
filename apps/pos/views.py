@@ -6,9 +6,11 @@ from oPOSum.apps.products.models import Product, Provider
 from oPOSum.apps.branches.models import Branch
 from oPOSum.apps.pos.models import POSFolio, Sale, SaleDetails
 from oPOSum.apps.inventory.models import Existence
+from oPOSum.libs import utils as pos_utils
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.conf import settings
+import pytz
 import logging, traceback
 import json
 from decimal import Decimal
@@ -40,6 +42,8 @@ def save_sale(request):
         pa = Decimal(post_json['payment_amount'])
         prods = []
         total = Decimal("0.0")
+        allowed_data = open("{0}/../libs/branches.json".format(settings.PROJECT_DIR))
+        allowed = json.load(allowed_data)
         for detail in details:
             total += Decimal(detail['qty']) * Decimal(detail['price'])
             try:
@@ -54,20 +58,17 @@ def save_sale(request):
                 sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']))
                 sd.save()
                 prods.append(sd)
+            try:
+                branch = Branch.objects.get(pk = post_json['branch'])
+                if branch.slug in allowed['allowed']:
+                    pe = Existence.objects.get(product__slug = detail['slug'], branch = branch)
+                    pe.quantity -= int(detail['qty'])
+                    pe.save()
+            except:
+                log_sales.error("Error while substracting existance by sale {0}:\n{1}\n".format(s, traceback.format_exc())) 
 
         s = Sale(branch = branch, user = user, total_amount = total, folio_number = folio, payment_method = pt, payment_amount = pa)
         s.save()
-        try:
-            branch = Branch.objects.get(pk = post_json['branch'])
-            allowed_data = open("{0}/../libs/branches.json".format(settings.PROJECT_DIR))
-            allowed = json.load(allowed_data)
-            if branch.slug in allowed['allowed']:
-                pe = Existence.objects.get(product__slug = detail['slug'], branch = branch)
-                pe.quantity -= int(detail['qty'])
-                pe.save()
-        except:
-            log_sales.error("Error while substracting existance by sale {0}:\n{1}\n".format(
-                         s, traceback.format_exc())) 
         for sd in prods:
             sd.sale = s
             sd.save()
@@ -76,47 +77,36 @@ def save_sale(request):
 
 def get_sales_report(request, branch, urldatetime):
     date_time = urldatetime.split('-')
+    tz = timezone('America/Monterrey')
+    ret = {}
     start_date = datetime(int(date_time[2]), int(date_time[1]), int(date_time[0]), 0, 0)
+    start_date = tz.localize(start_date)
+    start_date = pytz.utc.normalize(start_date.astimezone(tz))
     end_date = datetime(int(date_time[2]), int(date_time[1]), int(date_time[0]), 23, 59)
-    sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
-    ret = [sale.as_json() for sale in sales]
-    return HttpResponse("{\"response\": \"OK\", \"sales\":" + json.dumps(ret) + "}", mimetype="application/json")
+    end_date = tz.localize(end_date)
+    end_date = pytz.utc.normalize(end_date.astimezone(tz))
+    sales = Sales.objects.get_sales_json(branch, start_date, end_date)
+    ret['sales'] = sales
+    apps = pos_utils.get_installed_oposum_apps()
+    if 'layaway' in apps:
+        from oPOSum.apps.layaway.models import LayawayHistory
+        payments = LayawayHistory.objects.get_payments_json(branch, start_date, end_date)
+        ret['payments'] = payments
+    return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret) + "}", mimetype="application/json")
 
 def get_sales_report_branch(request, branch, datestart, dateend=None):
+    tz = timezone('America/Monterrey')
     if(dateend is None):
-        dt = datetime.now()
+        dt = datetime.utcnow()
         end_date = datetime(dt.year, dt.month, dt.day, 23, 59)
     else:
         dt = dateend.split('-')
         end_date = datetime(int(dt[2]), int(dt[1]), int(dt[0]), 23, 59)
+    end_date = tz.localize(end_date)
+    end_date = pytz.utc.normalize(end_date.astimezone(tz))
     dt = datestart.split('-')
     start_date = datetime(int(dt[2]), int(dt[1]), int(dt[0]), 0, 0)
-    sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
-    ret = {}
-    date = None
-    #logger.debug("total sales: {0}".format(len(sales)))
-    total = Decimal(0)
-    for s in sales:
-        if date != s.date_time.date():
-            total = Decimal(0)
-            date = s.date_time.date()
-            date_s = date.strftime("%Y-%m-%d")
-            ret[date_s] = {}
-            ret[date_s]["all_sales"] = []
-        else:
-            date_s = date.strftime("%Y-%m-%d")
-        #logger.debug("dt: {0}".format(date_s))
-        ret[date_s]["all_sales"].append({})
-        ret[date_s]["all_sales"][-1]["sale"] = s
-        ret[date_s]["all_sales"][-1]["sales"] = []
-        #logger.debug("ret[date_s] {0}".format(ret[date_s]))
-        #logger.debug("sale: {0}".format(s))
-        total += Decimal(s.total_amount)
-        sds = SaleDetails.objects.filter(sale = s)
-        for sd in sds:
-            logging.debug("sale details: {0}".format(sd))
-            ret[date_s]["all_sales"][-1]["sales"].append(sd)
-        ret[date_s]["total"] = str(total)
-    #ret = [sale.as_json() for sale in sales]
-    logger.debug("ret {0}".format(ret))
+    start_date = tz.localize(start_date)
+    start_date = pytz.utc.normalize(start_date.astimezone(tz))
+    ret = Sales.objects.get_sales_structure(branch, start_date, end_date)
     return render_to_response('pos/sale_details_report.html', { 'sales':ret, 'datestart': start_date.strftime("%d-%B-%Y"), 'dateend':end_date.strftime("%d-%B-%Y") },context_instance=RequestContext(request))
