@@ -90,7 +90,7 @@ class Product(models.Model):
 
     def get_retail_price(self):
         retail_price = Decimal(0.0)
-        if self.regular_price == Decimal('0.00'):
+        if self.regular_price == Decimal('0.00') and self.line is not None:
             retail_price = self.equivalency * self.line.price
         else:
             retail_price = self.regular_price

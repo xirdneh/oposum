@@ -124,7 +124,7 @@ def get_product(request, slug):
     logger.debug("Buscando producto con slug: {0}".format(slug))
     try:
         p = Product.objects.get(slug=slug.replace("-",""))
-        if p.regular_price == Decimal('0.00'):
+        if p.regular_price == Decimal('0.00') and p.line is not None:
             retail_price = p.equivalency * p.line.price
         else:
             retail_price = p.regular_price
