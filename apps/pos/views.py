@@ -65,7 +65,7 @@ def save_sale(request):
                     pe.quantity -= int(detail['qty'])
                     pe.save()
             except:
-                log_sales.error("Error while substracting existance by sale {0}:\n{1}\n".format(s, traceback.format_exc())) 
+                log_sales.error("Error while substracting existance branch {0} - {1}:\n{2}\n".format(branch, detail['slug'], traceback.format_exc())) 
 
         s = Sale(branch = branch, user = user, total_amount = total, folio_number = folio, payment_method = pt, payment_amount = pa)
         s.save()
