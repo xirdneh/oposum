@@ -77,7 +77,7 @@ def save_sale(request):
 
 def get_sales_report(request, branch, urldatetime):
     date_time = urldatetime.split('-')
-    tz = timezone('America/Monterrey')
+    tz = pytz.timezone('America/Monterrey')
     ret = {}
     start_date = datetime(int(date_time[2]), int(date_time[1]), int(date_time[0]), 0, 0)
     start_date = tz.localize(start_date)
@@ -95,7 +95,7 @@ def get_sales_report(request, branch, urldatetime):
     return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret) + "}", mimetype="application/json")
 
 def get_sales_report_branch(request, branch, datestart, dateend=None):
-    tz = timezone('America/Monterrey')
+    tz = pytz.timezone('America/Monterrey')
     if(dateend is None):
         dt = datetime.utcnow()
         end_date = datetime(dt.year, dt.month, dt.day, 23, 59)
@@ -108,5 +108,5 @@ def get_sales_report_branch(request, branch, datestart, dateend=None):
     start_date = datetime(int(dt[2]), int(dt[1]), int(dt[0]), 0, 0)
     start_date = tz.localize(start_date)
     start_date = pytz.utc.normalize(start_date.astimezone(tz))
-    ret = Sales.objects.get_sales_structure(branch, start_date, end_date)
+    ret = Sale.objects.get_sales_structure(branch, start_date, end_date)
     return render_to_response('pos/sale_details_report.html', { 'sales':ret, 'datestart': start_date.strftime("%d-%B-%Y"), 'dateend':end_date.strftime("%d-%B-%Y") },context_instance=RequestContext(request))

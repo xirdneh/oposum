@@ -3,6 +3,9 @@ from django.utils.translation import ugettext as _
 from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
+from decimal import Decimal
+import logging, traceback
+logger = logging.getLogger(__name__)
 
 # Create your models here.
 class SaleManager(models.Manager):
