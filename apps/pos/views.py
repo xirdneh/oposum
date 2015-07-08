@@ -85,7 +85,7 @@ def get_sales_report(request, branch, urldatetime):
     end_date = datetime(int(date_time[2]), int(date_time[1]), int(date_time[0]), 23, 59)
     end_date = tz.localize(end_date)
     end_date = pytz.utc.normalize(end_date.astimezone(tz))
-    sales = Sales.objects.get_sales_json(branch, start_date, end_date)
+    sales = Sale.objects.get_sales_json(branch, start_date, end_date)
     ret['sales'] = sales
     apps = pos_utils.get_installed_oposum_apps()
     if 'layaway' in apps:
