@@ -145,12 +145,12 @@ $mrs.click(function(e){
     }
     $.ajax({
         dataType:"jsonp",
-        url:"//www.timeapi.org/utc/now.json",
+        url:"http://date.jsontest.com",
         success:function(d){
-                var $utc = new Date(d.dateString);
-                $now = new Date(d.dateString);
+                var $utc = d.date;
+                $now = d.date.split('-');
                 $.ajax({
-                    url:"/pos/report-sales/" + $branch + "/" + $now.getDate() + "-" + (+$now.getMonth() + 1) + "-" + $now.getFullYear() + "/",
+                    url:"/pos/report-sales/" + $branch + "/" + $now[1] + "-" + $now[0] + "-" + $now[2] + "/",
                     success:function(data){
                         var d = data.data;
                         console.log("here");
