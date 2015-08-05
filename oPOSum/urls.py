@@ -22,3 +22,9 @@ urlpatterns = patterns('',
     url(r'^inventory/', include('oPOSum.apps.inventory.urls')),
     url(r'^clients/', include('oPOSum.apps.client.urls')),
 )
+
+from django.conf import settings
+from django.conf.urls.static import static
+if settings.DEBUG == True:
+    urlpatterns = urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+print(urlpatterns)

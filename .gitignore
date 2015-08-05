@@ -2,10 +2,11 @@
 __pycache__/
 *.py[cod]
 .gitignore
-
+db.sqlite3
 oPOSum/settings/local.py
 oPOSum/settings/local_logging.py
 logs/
+docker/requirements.txt
 # C extensions
 *.so
 
