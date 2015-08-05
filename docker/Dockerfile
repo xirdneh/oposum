@@ -4,7 +4,7 @@ MAINTAINER Josue Balandrano <xirdneh@gmail.com>
 
 EXPOSE 8000
 
-RUN yum -y groupinstall 'Developer Tools'  && \
+RUN yum -y groupinstall 'Development Tools'  && \
     yum -y install epel-release && \
     yum -y install python-pip MySQL-python python-devel libjpeg-devel zlib-devel
 
