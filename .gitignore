@@ -5,6 +5,7 @@ __pycache__/
 
 settings/local.py
 settings/local_logging.py
+logs/
 # C extensions
 *.so
 
