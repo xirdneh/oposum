@@ -76,8 +76,17 @@ def save_sale(request):
     return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\"}", mimetype="application/json")
 
 def get_sales_report(request, branch, urldatetime):
-    date_time = urldatetime.split('-')
     tz = pytz.timezone('America/Monterrey')
+    utz = pytz.timezone('UTC')
+    if urldatetime is None or urldatetime == '':
+        utc = datetime.utcnow()
+        utc = utc.replace(tzinfo=utz) 
+        now = utc.astimezone(tz)
+        date_time = now.strftime("%d-%m-%Y")
+        date_time = date_time.split('-')
+
+    else:
+        date_time = urldatetime.split('-')
     ret = {}
     start_date = datetime(int(date_time[2]), int(date_time[1]), int(date_time[0]), 0, 0)
     start_date = tz.localize(start_date)
@@ -92,7 +101,7 @@ def get_sales_report(request, branch, urldatetime):
         from oPOSum.apps.layaway.models import LayawayHistory
         payments = LayawayHistory.objects.get_payments_json(branch, start_date, end_date)
         ret['payments'] = payments
-    return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret) + "}", mimetype="application/json")
+    return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret) + "}", content_type="application/json")
 
 def get_sales_report_branch(request, branch, datestart, dateend=None):
     tz = pytz.timezone('America/Monterrey')

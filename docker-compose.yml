@@ -1,10 +1,10 @@
 db:
     image: postgres
-    volumes:
-        - .db/postgresql/data:/var/lib/postgresql/data
     environment:
         - POSTGRES_USER=oposm_db_usr
         - POSTGRES_DB=oposm_db
+    ports:
+        - "8080:5432"
 web:
     image: balco/oposum
     volumes:
@@ -13,3 +13,4 @@ web:
         - "8000:8000"
     links:
         - db
+    command: ./manage.py runserver 0.0.0.0:8000

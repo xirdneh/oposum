@@ -1,3 +1,4 @@
+/*global $*/
 var $pi = $("#product_code");
 var $prod;
 var $total = 0;
