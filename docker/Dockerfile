@@ -6,7 +6,7 @@ EXPOSE 8000
 
 RUN yum -y groupinstall 'Development Tools'  && \
     yum -y install epel-release && \
-    yum -y install python-pip MySQL-python python-devel libjpeg-devel zlib-devel
+    yum -y install python-pip MySQL-python python-devel libjpeg-devel zlib-devel postgresql-devel
 
 COPY requirements.txt /tmp/requirements.txt
 

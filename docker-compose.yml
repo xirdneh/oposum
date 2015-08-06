@@ -1,0 +1,15 @@
+db:
+    image: postgres
+    volumes:
+        - .db/postgresql/data:/var/lib/postgresql/data
+    environment:
+        - POSTGRES_USER=oposm_db_usr
+        - POSTGRES_DB=oposm_db
+web:
+    image: balco/oposum
+    volumes:
+        - .:/oPOSum/
+    ports:
+        - "8000:8000"
+    links:
+        - db
