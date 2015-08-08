@@ -1,0 +1,7 @@
+Django==1.6
+South==0.8.4
+django-sekizai==0.7
+Pillow
+reportlab
+pytz
+psycopg2

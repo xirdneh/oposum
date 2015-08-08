@@ -45,7 +45,8 @@ class SaleManager(models.Manager):
         return ret
 
     def get_sales_json(self, branch, datestart, dateend):
-        sales = Sale.objects.filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        logger.debug("ret {0}".format(sales))
         ret = [sale.as_json() for sale in sales]
         return ret
 
