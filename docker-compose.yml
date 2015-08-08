@@ -1,10 +1,7 @@
 db:
     image: postgres
-<<<<<<< HEAD
     volumes:
         - /var/lib/postgresql/data
-=======
->>>>>>> origin
     environment:
         - POSTGRES_USER=oposm_db_usr
         - POSTGRES_DB=oposm_db
@@ -18,8 +15,4 @@ web:
         - "9000:9000"
     links:
         - db
-<<<<<<< HEAD
     command: ./manage.py runserver 0.0.0.0:9000
-=======
-    command: ./manage.py runserver 0.0.0.0:8000
->>>>>>> origin
