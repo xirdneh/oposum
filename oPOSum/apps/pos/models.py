@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from oPOSum.apps.products.models import Product
+#from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from decimal import Decimal
@@ -80,7 +80,7 @@ class Sale(models.Model):
             )
 
 class SaleDetails(models.Model):
-    product = models.ForeignKey(Product)
+    product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default=1)
     over_price = models.DecimalField(_("Overwritten Price"), max_digits = 10, decimal_places=2, blank=True, null=True)
     sale = models.ForeignKey(Sale, blank=True, null=True)

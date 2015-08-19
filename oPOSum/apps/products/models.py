@@ -1,7 +1,11 @@
 from django.db import models
 from django.utils.translation import ugettext as _
+from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetail
+from oPOSum.apps.pos.models import Sale, SaleDetails
 from decimal import *
 import logging
+import json
+import pytz
 logger = logging.getLogger(__name__)
 
 # Create your models here.
@@ -95,4 +99,44 @@ class Product(models.Model):
         else:
             retail_price = self.regular_price
         return retail_price
+
+    def get_transactions(self):
+        logger.debug("Product's transactions {0}".format(self.name));
+        ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name').order_by('existence__date_time')
+        ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name').order_by('existence__date_time')
+        ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name').order_by('sale__date_time')
+        r_positive = reduce(lambda x, y: x + y.quantity, ehs_positive, 0)
+        r_negative = reduce(lambda x, y: x + y.quantity, ehs_negative, 0)
+        r_sales = reduce(lambda x, y: x + y.quantity, ehs_sales, 0)
+        total = r_positive - r_negative - r_sales;
+        tz = pytz.timezone('America/Monterrey')
+        entries = [dict(
+                    quantity = o.quantity,
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in ehs_positive]
+        exits = [dict(
+                    quantity = str(o.quantity),
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in ehs_negative]
+        sales = [dict(
+                    branch = o.sale.branch.name,
+                    date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    quantity = str(o.quantity),
+                    folio_number = o.sale.folio_number
+                    ) for o in ehs_sales]
+        seen = set()
+        branches = [o.existence.branch.name for o in ehs_positive if o.existence.branch.name not in seen and not seen.add(o.existence.branch.name) ]
+        branches_transactions = {}
+        for b in branches:
+            qe = reduce(lambda x, y: x + y.quantity if y.existence.branch.name == b else x, ehs_positive, 0)
+            qn = reduce(lambda x, y: x + y.quantity if y.existence.branch.name == b else x, ehs_negative, 0)
+            qs = reduce(lambda x, y: x + y.quantity if y.sale.branch.name == b else x, ehs_sales, 0)
+            branches_transactions[b] = dict(entries = qe, exits = qn, sales = qs)
+        logger.debug("branches: {0}".format(branches_transactions))
+        return dict(entries = entries, exits = exits, sales = sales, total=total, branches=branches, transactions_totals = branches_transactions)
+        #return HttpResponse("{\"response\": \"ok\", \"entries\":" + json.dumps(entries) + ", \"exits\":" + json.dumps(exits) + ", \"sales\":" + json.dumps(sales) + "}", mimetypes="application/json");
 

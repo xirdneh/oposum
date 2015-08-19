@@ -203,3 +203,8 @@ def migrate_prod(request):
                         }
         }
         return HttpResponse(json.dumps(ret), mimetype='application/json')
+
+@login_required
+def get_transactions(request, slug):
+    p = Product.objects.get(slug = slug.replace('-', ''))
+    return HttpResponse("{\"response\": \"ok\", \"result\":" + json.dumps(p.get_transactions()) + "}", mimetype="application/json");

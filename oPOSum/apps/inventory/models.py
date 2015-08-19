@@ -1,13 +1,13 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from oPOSum.apps.products.models import Product
+#from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from datetime import datetime
 
 # Create your models here.
 class Existence(models.Model):
-    product = models.ForeignKey(Product)
+    product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default=0)
     branch = models.ForeignKey(Branch)
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
@@ -41,7 +41,7 @@ class ExistenceHistory(models.Model):
         )
 
 class ExistenceHistoryDetail(models.Model):
-    product = models.ForeignKey(Product)
+    product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default = 1)
     existence = models.ForeignKey(ExistenceHistory, blank=True, null=True)
 
@@ -70,7 +70,7 @@ class Inventory(models.Model):
 
 class InventoryEntry(models.Model):
     inv = models.ForeignKey(Inventory, blank=True)
-    product = models.ForeignKey(Product)
+    product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default = 1)
     date_time = models.DateTimeField(_("Date and Time"), auto_now = True, default = datetime.now)
     user = models.ForeignKey(User)
