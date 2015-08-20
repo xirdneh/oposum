@@ -102,15 +102,25 @@ class Product(models.Model):
         return retail_price
 
     def get_transactions(self):
-        logger.debug("Product's transactions {0}".format(self.name));
         ret = {}
+        inves = self.inventoryentry_set.order_by('inv').distinct('inv')
+        inves = sorted(inves, key=lambda o: o.inv.date_time)
+        invs = {}
+        for i in inves:
+            invs[i.inv.branch.name] = i.inv
+        logger.debug("Invs: {0}:".format(invs))
+        inves = []
+        for key, val in invs.items():
+            inves += self.inventoryentry_set.filter(inv = val)
+        logger.debug("Inves: {0}".format(inves))
         ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name', 'existence__date_time')
         ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name','existence__date_time')
         ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name', 'sale__date_time')
         r_positive = reduce(lambda x, y: x + y.quantity, ehs_positive, 0)
+        r_einv = reduce(lambda x, y: x + y.quantity, inves, 0)
         r_negative = reduce(lambda x, y: x + y.quantity, ehs_negative, 0)
         r_sales = reduce(lambda x, y: x + y.quantity, ehs_sales, 0)
-        total = r_positive - r_negative - r_sales;
+        total = r_positive + r_einv - r_negative - r_sales;
         tz = pytz.timezone('America/Monterrey')
         totales = {}
         entries = [dict(
@@ -119,15 +129,29 @@ class Product(models.Model):
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in ehs_positive]
-
         for e in entries:
             if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven = 0)
                 totales[e['branch']]['entries'] = e['quantity']
             elif not 'entries' in totales[e['branch']]:
                 totales[e['branch']]['entries'] = e['quantity']
             else:
                 totales[e['branch']]['entries'] += e['quantity']
+
+        inv_entries = [dict(
+                    quantity = o.quantity,
+                    id = o.inv.id,
+                    branch = o.inv.branch.name,
+                    date_time = o.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                    ) for o in inves]
+        for e in inv_entries:
+            if not e['branch'] in totales:
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
+                totales[e['branch']]['inven'] = e['quantity']
+            elif not 'inven' in totales[e['branch']]:
+                totales[e['branch']]['inven'] = e['quantity']
+            else:
+                totales[e['branch']]['inven'] += e['quantity']
 
         exits = [dict(
                     quantity = o.quantity,
@@ -164,9 +188,11 @@ class Product(models.Model):
         ret['entries'] = entries
         ret['exits'] = exits
         ret['sales'] = sales
+        ret['inven'] = inv_entries
         ret['totals'] = dict(
                 total = total,
                 entries = r_positive,
+                inven = r_einv,
                 exits = r_negative,
                 sales = r_sales)
         apps = pos_utils.get_installed_oposum_apps()
@@ -213,8 +239,6 @@ class Product(models.Model):
             ret['workshops'] = workshops
             ret['totals']['workshops'] = reduce(lambda x, y: x + y.qty, ws_prods, 0)
         for b, t in totales.items():
-            logger.debug("b: {0}".format(b))
-            logger.debug("t: {0}".format(t))
-            totales[b]['actual'] = t['entries'] - t['exits'] - t['sales'] - t['layaways']
+            totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
         ret['totals']['tot_branches'] = totales
         return ret

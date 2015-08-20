@@ -15,19 +15,26 @@
             </tr>
         </thead>
         <tbody>
-                <tr class="success">
-                    <td>Altas</td><td>{{transactions.totals.entries}}</td>
+                <tr>
+                    <td>Altas <span class="glyphicon glyphicon-plus text-success"></span></td><td>{{transactions.totals.entries}}</td>
                 </tr>
-                <tr class="danger">
-                    <td>Bajas</td><td>{{transactions.totals.exits}}</td>
+                <tr>
+                    <td>Inventarios <span class="glyphicon glyphicon-plus text-success"></span></td><td>{{transactions.totals.inven}}</td>
                 </tr>
-                <tr class="warning">
-                    <td>Ventas</td><td>{{transactions.totals.sales}}</td>
+                <tr>
+                    <td>Bajas <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.exits}}</td>
                 </tr>
-                <tr class="warning">
-                    <td>Separados</td><td>{{transactions.totals.layaways}}</td>
+                <tr>
+                    <td>Ventas <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.sales}}</td>
                 </tr>
-            <tr>
+                <tr>
+                    <td>Separados <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.layaways}}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <span style="font-weight:bold; font-size:18px;">Total: {{transactions.totals.total}}</span>
+                    </td>
+                </tr>
         </tbody>
     </table>
 </div>
@@ -40,10 +47,11 @@
         <thead>
             <tr>
                 <th>Sucursal</th>
-                <th>Altas</th>
-                <th>Bajas</th>
-                <th>Ventas</th>
-                <th>Separados</th>
+                <th>Inventarios <span class="glyphicon glyphicon-plus text-success"></span></th>
+                <th>Altas <span class="glyphicon glyphicon-plus text-success"></span></th>
+                <th>Bajas <span class="glyphicon glyphicon-minus text-danger"></span></th>
+                <th>Ventas <span class="glyphicon glyphicon-minus text-danger"></span></th>
+                <th>Separados <span class="glyphicon glyphicon-minus text-danger"></span></th>
                 <th>Existencias Actuales</th>
             </tr>
         </thead>
@@ -51,6 +59,7 @@
             {% for b, t in transactions.totals.tot_branches.items %}
                 <tr>
                     <td>{{b}}</td>
+                    <td>{{t.inven}}</td>
                     <td>{{t.entries}}</td>
                     <td>{{t.exits}}</td>
                     <td>{{t.sales}}</td>
