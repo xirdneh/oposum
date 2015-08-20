@@ -71,6 +71,33 @@
     </table>
 </div>
 
+{% if transactions.inven|length > 0 %}
+<div class="panel panel-success">
+    <div class="panel-heading"><a href="#">Inventarios</a>
+                               <span class="badge pull-right">{{transactions.totals.inven}}<span></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Folio</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.inven %}
+            <tr>
+                <td>{{e.branch}}</td>
+                <td>{{e.id}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr> 
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% if transactions.entries|length > 0 %}
 <div class="panel panel-success">
     <div class="panel-heading"><a href="#">Altas</a>
