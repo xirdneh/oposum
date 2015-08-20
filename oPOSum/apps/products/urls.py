@@ -13,4 +13,5 @@ urlpatterns = patterns('oPOSum.apps.products.views',
     url(r'^migrate-prod/?$', 'migrate_prod', name="products-migrate_product"),
     url(r'^get-transactions/(?P<slug>[\-a-zA-Z0-9\.]+)/?$', 'get_transactions', name="products-get_transactions"),
     url(r'^show-transactions/(?P<slug>[\-a-zA-Z0-9\.]+)/?$', 'show_transactions', name="products-show_transactions"),
+    url(r'^search/?$', 'search', name="products-search"),
 )

@@ -162,7 +162,7 @@ class Product(models.Model):
 
         for e in exits:
             if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
                 totales[e['branch']]['exits'] = e['quantity']
             elif not 'exits' in totales[e['branch']]:
                 totales[e['branch']]['exits'] = e['quantity']
@@ -178,7 +178,7 @@ class Product(models.Model):
 
         for e in sales:
             if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
                 totales[e['branch']]['sales'] = e['quantity']
             elif not 'sales' in totales[e['branch']]:
                 totales[e['branch']]['sales'] = e['quantity']
@@ -208,7 +208,7 @@ class Product(models.Model):
 
             for e in layaways:
                 if not e['branch'] in totales:
-                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
                     totales[e['branch']]['layaways'] = e['quantity']
                 elif not 'layaways' in totales[e['branch']]:
                     totales[e['branch']]['layaways'] = e['quantity']
@@ -229,7 +229,7 @@ class Product(models.Model):
 
             for e in workshops:
                 if not e['branch'] in totales:
-                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
                     totales[e['branch']]['workshops'] = e['quantity']
                 elif not 'workshops' in totales[e['branch']]:
                     totales[e['branch']]['workshops'] = e['quantity']
@@ -238,6 +238,7 @@ class Product(models.Model):
 
             ret['workshops'] = workshops
             ret['totals']['workshops'] = reduce(lambda x, y: x + y.qty, ws_prods, 0)
+        logger.debug("totals: {0}".format(totales))
         for b, t in totales.items():
             totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
         ret['totals']['tot_branches'] = totales

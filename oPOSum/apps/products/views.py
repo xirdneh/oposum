@@ -1,5 +1,6 @@
 from django.shortcuts import render, render_to_response
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from oPOSum.apps.products.forms import *
 from oPOSum.apps.products.models import *
 from oPOSum.libs import utils as pos_utils
@@ -155,6 +156,7 @@ def get_product(request, slug):
             ret = {}
             ret['status'] = 'error'
             ret['message'] = 'Producto no encontrado'
+            ret['slug'] = slug
     return HttpResponse(json.dumps(ret) , mimetype='application/json')
 
 def __get_full_product(slug):
@@ -214,3 +216,10 @@ def show_transactions(request, slug):
     p = Product.objects.get(slug = slug.replace('-', ''))
     transactions = p.get_transactions()
     return render_to_response('products/show_transactions.html', { 'transactions' : transactions, 'product' : p}, context_instance=RequestContext(request))
+
+@login_required
+def search(request):
+    q = request.GET['q']
+    ps = Product.objects.filter(Q(slug__icontains=q) | Q(name__icontains=q))
+    
+    return render_to_response('products/search.html', { 'products' : ps}, context_instance=RequestContext(request))

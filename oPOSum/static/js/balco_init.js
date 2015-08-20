@@ -18,12 +18,12 @@ if (typeof balco == 'undefined'){
             $option.text = branch.fields.name;
             $select.appendChild($option);
         }
-        var $label = document.createElement("label")
+        var $label = document.createElement("label");
         $label.setAttribute("for", "select_branches");
         $label.innerHTML = "Sucursal: ";
         $ub.appendChild($label);
         $ub.appendChild($select);
-    }
+    };
 
     balco.select_init_branch = function(elem, branch){ 
         var $sel = document.getElementById(elem);
@@ -36,7 +36,7 @@ if (typeof balco == 'undefined'){
                 break;
             }
         }
-    }
+    };
 
     balco.get_cookie = function(name){
     cookieValue = null;
@@ -52,7 +52,7 @@ if (typeof balco == 'undefined'){
         }
     }
     return cookieValue;
-   }
+   };
 
    balco.search = function(event){
         event.preventDefault();
@@ -63,7 +63,7 @@ if (typeof balco == 'undefined'){
                 if(data.status == 'ok'){
                     window.location = "/products/show-transactions/" + data.product.slug;
                 }else{
-                    $(".navbar .search-box .msg").text("Producto no existe");
+                    window.location = "/products/search?q=" + data.slug;
                 }
             },
             error: function(jqXHR, textStatus, errorThrown){
@@ -71,7 +71,7 @@ if (typeof balco == 'undefined'){
                 console.log(jqXHR);
             }
         });
-   }
+   };
 }
 (function($){
     $(".navbar .search-box form").submit(balco.search);

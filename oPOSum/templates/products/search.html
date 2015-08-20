@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load sekizai_tags static %}
+{% block main_content %}
+<h3> Se encontr&aacute;ron {{products|length}} art&iacute;culos </h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Descripcion</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in products %}
+            <tr>
+                <td><a href="/products/show-transactions/{{p.slug}}">{{p.name}}</a></td>
+                <td>{{p.description}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
