@@ -57,6 +57,7 @@
             {% if request.user.is_authenticated %}
                 <span class="nav_username">{{request.user.username}}</span>
                 <span class="nav_username"><a href="/logout/">Cerrar Sesion</a></span>
+                <div class="search-box"><form name="search" action="/search"><label class="hidden" for="search">B&uacute;squeda</label><input type="text" name="q" /><button type="btn-sm btn-info">Buscar</button></form><span class="msg"></span></div>
             {% else %}
                 <span class="nav_username">Balco</span>
             {% endif %}

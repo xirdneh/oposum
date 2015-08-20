@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load sekizai_tags static%}
+
+{% block main_content %}
+    <h2> Movimientos de {{ product.name }} </h2>
+    <p>{{product.description}}</p>
+
+<div class="panel panel-info">
+    <div class="panel-heading"><a href="#">Resumen</a></div>
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Movimiento</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr class="success">
+                    <td>Altas</td><td>{{transactions.totals.entries}}</td>
+                </tr>
+                <tr class="danger">
+                    <td>Bajas</td><td>{{transactions.totals.exits}}</td>
+                </tr>
+                <tr class="warning">
+                    <td>Ventas</td><td>{{transactions.totals.sales}}</td>
+                </tr>
+                <tr class="warning">
+                    <td>Separados</td><td>{{transactions.totals.layaways}}</td>
+                </tr>
+            <tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <a href="#">Existencia</a>
+    </div>
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Altas</th>
+                <th>Bajas</th>
+                <th>Ventas</th>
+                <th>Separados</th>
+                <th>Existencias Actuales</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b, t in transactions.totals.tot_branches.items %}
+                <tr>
+                    <td>{{b}}</td>
+                    <td>{{t.entries}}</td>
+                    <td>{{t.exits}}</td>
+                    <td>{{t.sales}}</td>
+                    <td>{{t.layaways}}</td>
+                    <td>{{ t.actual}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if transactions.entries|length > 0 %}
+<div class="panel panel-success">
+    <div class="panel-heading"><a href="#">Altas</a>
+                               <span class="badge pull-right">{{transactions.totals.entries}}<span></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Folio</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.entries %}
+            <tr>
+                <td>{{e.branch}}</td>
+                <td>{{e.id}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr> 
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if transactions.exits|length > 0 %}
+<div class="panel panel-danger">
+    <div class="panel-heading"><a href="#">Bajas</a>
+                    <span class="badge pull-right">{{transactions.totals.exits}}<span></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Folio</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.exits %}
+            <tr>
+                <td>{{e.branch}}</td>
+                <td>{{e.id}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr> 
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if transactions.sales|length > 0 %}
+<div class="panel panel-warning">
+    <div class="panel-heading"><a href="#">Ventas</a>
+                    <span class="badge pull-right">{{transactions.totals.sales}}<span></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Folio</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.sales %}
+            <tr>
+                <td>{{e.branch}}</td>
+                <td>{{e.folio_number}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr> 
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if transactions.layaways|length > 0 %}
+<div class="panel panel-warning">
+    <div class="panel-heading"><a href="#">Separados</a>
+                <span class="badge pull-right">{{transactions.totals.layaways}}<span></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sucursal</th>
+                <th>Folio</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.layaways %}
+            <tr>
+                <td>{{e.branch}}</td>
+                <td>{{e.id}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr> 
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+    
+{% endblock %}

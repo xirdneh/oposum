@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from oPOSum.apps.client.models import Client
@@ -10,7 +9,6 @@ import pytz
 from decimal import Decimal
 
 class LayawayManager(models.Manager):
-
     def can_add_more(self, client):
         ret = True
         ls = super(LayawayManager, self).get_query_set().filter(client = client)
@@ -103,7 +101,7 @@ class Layaway(models.Model):
         super(Layaway, self).save(*args, **kwargs)
 
 class LayawayProduct(models.Model):
-    prod = models.ForeignKey(Product)
+    prod = models.ForeignKey('products.Product')
     qty = models.PositiveIntegerField(_("Quantity"), default = 0)
     layaway = models.ForeignKey(Layaway)
 

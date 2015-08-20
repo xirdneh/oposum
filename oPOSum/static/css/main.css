@@ -142,3 +142,16 @@ TABLES
     width:90%;
     margin:0 auto;
 }
+
+/*********************************************
+*           HEADER STYLES
+**********************************************/
+.navbar .search-box {
+    float:right;
+    display:inline-block;
+    padding-top:15px;
+}
+
+.navbar .search-box .msg {
+    color:red;
+}

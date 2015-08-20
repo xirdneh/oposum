@@ -76,5 +76,5 @@ class WorkshopProduct(models.Model):
     user = models.ForeignKey(User)
     ticket = models.ForeignKey(WorkshopTicket)
     date_time = models.DateTimeField(_("Date and Time"), auto_now_add = True)
-    product = models.ForeignKey(Product)
+    product = models.ForeignKey('products.Product')
     qty = models.PositiveIntegerField(_("Quantity"), blank = False, null = False, default = 0)

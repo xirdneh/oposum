@@ -208,3 +208,8 @@ def migrate_prod(request):
 def get_transactions(request, slug):
     p = Product.objects.get(slug = slug.replace('-', ''))
     return HttpResponse("{\"response\": \"ok\", \"result\":" + json.dumps(p.get_transactions()) + "}", mimetype="application/json");
+
+@login_required
+def show_transactions(request, slug):
+    p = Product.objects.get(slug = slug.replace('-', ''))
+    return render_to_response('products/show_transactions.html', { 'transactions' : p.get_transactions, 'product' : p}, context_instance=RequestContext(request))

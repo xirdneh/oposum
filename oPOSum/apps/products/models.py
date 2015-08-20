@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetail
 from oPOSum.apps.pos.models import Sale, SaleDetails
+from oPOSum.libs import utils as pos_utils
 from decimal import *
 import logging
 import json
@@ -102,41 +103,118 @@ class Product(models.Model):
 
     def get_transactions(self):
         logger.debug("Product's transactions {0}".format(self.name));
-        ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name').order_by('existence__date_time')
-        ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name').order_by('existence__date_time')
-        ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name').order_by('sale__date_time')
+        ret = {}
+        ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name', 'existence__date_time')
+        ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name','existence__date_time')
+        ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name', 'sale__date_time')
         r_positive = reduce(lambda x, y: x + y.quantity, ehs_positive, 0)
         r_negative = reduce(lambda x, y: x + y.quantity, ehs_negative, 0)
         r_sales = reduce(lambda x, y: x + y.quantity, ehs_sales, 0)
         total = r_positive - r_negative - r_sales;
         tz = pytz.timezone('America/Monterrey')
+        totales = {}
         entries = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in ehs_positive]
+
+        for e in entries:
+            if not e['branch'] in totales:
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']]['entries'] = e['quantity']
+            elif not 'entries' in totales[e['branch']]:
+                totales[e['branch']]['entries'] = e['quantity']
+            else:
+                totales[e['branch']]['entries'] += e['quantity']
+
         exits = [dict(
-                    quantity = str(o.quantity),
+                    quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in ehs_negative]
+
+        for e in exits:
+            if not e['branch'] in totales:
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']]['exits'] = e['quantity']
+            elif not 'exits' in totales[e['branch']]:
+                totales[e['branch']]['exits'] = e['quantity']
+            else:
+                totales[e['branch']]['exits'] += e['quantity']
+
         sales = [dict(
                     branch = o.sale.branch.name,
                     date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    quantity = str(o.quantity),
+                    quantity = o.quantity,
                     folio_number = o.sale.folio_number
                     ) for o in ehs_sales]
-        seen = set()
-        branches = [o.existence.branch.name for o in ehs_positive if o.existence.branch.name not in seen and not seen.add(o.existence.branch.name) ]
-        branches_transactions = {}
-        for b in branches:
-            qe = reduce(lambda x, y: x + y.quantity if y.existence.branch.name == b else x, ehs_positive, 0)
-            qn = reduce(lambda x, y: x + y.quantity if y.existence.branch.name == b else x, ehs_negative, 0)
-            qs = reduce(lambda x, y: x + y.quantity if y.sale.branch.name == b else x, ehs_sales, 0)
-            branches_transactions[b] = dict(entries = qe, exits = qn, sales = qs)
-        logger.debug("branches: {0}".format(branches_transactions))
-        return dict(entries = entries, exits = exits, sales = sales, total=total, branches=branches, transactions_totals = branches_transactions)
-        #return HttpResponse("{\"response\": \"ok\", \"entries\":" + json.dumps(entries) + ", \"exits\":" + json.dumps(exits) + ", \"sales\":" + json.dumps(sales) + "}", mimetypes="application/json");
 
+        for e in sales:
+            if not e['branch'] in totales:
+                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                totales[e['branch']]['sales'] = e['quantity']
+            elif not 'sales' in totales[e['branch']]:
+                totales[e['branch']]['sales'] = e['quantity']
+            else:
+                totales[e['branch']]['sales'] += e['quantity']
+
+        ret['entries'] = entries
+        ret['exits'] = exits
+        ret['sales'] = sales
+        ret['totals'] = dict(
+                total = total,
+                entries = r_positive,
+                exits = r_negative,
+                sales = r_sales)
+        apps = pos_utils.get_installed_oposum_apps()
+        if 'layaway' in apps:
+            from oPOSum.apps.layaway.models import LayawayProduct
+            lay_prods = LayawayProduct.objects.filter(prod = self).order_by('layaway__branch__name', 'layaway__date_time')
+            layaways = [dict(
+                    quantity = o.qty,
+                    id = o.layaway.id,
+                    branch = o.layaway.branch.name,
+                    date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                    ) for o in lay_prods]
+
+            for e in layaways:
+                if not e['branch'] in totales:
+                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                    totales[e['branch']]['layaways'] = e['quantity']
+                elif not 'layaways' in totales[e['branch']]:
+                    totales[e['branch']]['layaways'] = e['quantity']
+                else:
+                    totales[e['branch']]['layaways'] += e['quantity']
+
+            ret['layaways'] = layaways
+            ret['totals']['layaways'] = reduce(lambda x, y: x + y.qty, lay_prods, 0)
+        if 'workshop' in apps:
+            from oPOSum.apps.workshop.models import WorkshopProduct
+            ws_prods = WorkshopProduct.objects.filter(product = self).order_by('ticket__branch__name', 'ticket__date_time')
+            workshops = [dict(
+                    quantity = o.qty,
+                    id = o.ticket.id,
+                    branch = o.ticket.branch.name,
+                    date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                    ) for o in ws_prods]
+
+            for e in workshops:
+                if not e['branch'] in totales:
+                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0)
+                    totales[e['branch']]['workshops'] = e['quantity']
+                elif not 'workshops' in totales[e['branch']]:
+                    totales[e['branch']]['workshops'] = e['quantity']
+                else:
+                    totales[e['branch']]['workshops'] += e['quantity']
+
+            ret['workshops'] = workshops
+            ret['totals']['workshops'] = reduce(lambda x, y: x + y.qty, ws_prods, 0)
+        for b, t in totales.items():
+            logger.debug("b: {0}".format(b))
+            logger.debug("t: {0}".format(t))
+            totales[b]['actual'] = t['entries'] - t['exits'] - t['sales'] - t['layaways']
+        ret['totals']['tot_branches'] = totales
+        return ret

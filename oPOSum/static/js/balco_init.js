@@ -53,4 +53,27 @@ if (typeof balco == 'undefined'){
     }
     return cookieValue;
    }
+
+   balco.search = function(event){
+        event.preventDefault();
+        $.ajax({
+            type:"get",
+            url: "/products/get-product/" + $(this['q']).val(),
+            success: function(data){
+                if(data.status == 'ok'){
+                    window.location = "/products/show-transactions/" + data.product.slug;
+                }else{
+                    $(".navbar .search-box .msg").text("Producto no existe");
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                if(!console){return;}
+                console.log(jqXHR);
+            }
+        });
+   }
 }
+(function($){
+    $(".navbar .search-box form").submit(balco.search);
+    console.log("done");
+})(jQuery);
