@@ -174,7 +174,7 @@ class Product(models.Model):
                     date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     quantity = o.quantity,
                     folio_number = o.sale.folio_number
-                    ) for o in ehs_sales]
+                    ) for o in ehs_sales if o.sale is not None ]
 
         for e in sales:
             if not e['branch'] in totales:
