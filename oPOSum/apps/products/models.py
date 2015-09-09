@@ -103,7 +103,7 @@ class Product(models.Model):
 
     def get_transactions(self):
         ret = {}
-        inves = self.inventoryentry_set.filter('inv__enabled' = False).order_by('inv').distinct('inv')
+        inves = self.inventoryentry_set.filter(inv__enabled = False).order_by('inv').distinct('inv')
         inves = sorted(inves, key=lambda o: o.inv.date_time)
         invs = {}
         for i in inves:
