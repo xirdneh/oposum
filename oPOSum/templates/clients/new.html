@@ -222,7 +222,7 @@
 			p.value = name;
 		}
 		
-		//if (isLoaded()) {
+		if (isLoaded()) {
 			// Searches for locally installed printer with specified name
 			qz.findPrinter(p.value);
 			
@@ -232,7 +232,7 @@
 				var printer = qz.getPrinter();
 				window['qzDoneFinding'] = null;
 			};
-		//}
+		}
 	}
 	function chr(i) {
 		return String.fromCharCode(i);
