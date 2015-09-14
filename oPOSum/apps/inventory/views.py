@@ -418,11 +418,14 @@ def save_adjustments(request):
         return HttpResponse("{ \"status\": \"500\", \"message\":\"Error\"}", content_type="application/json", status=500)
         
 @login_required
-def print_inventory_existence(request):
+def print_inventory_existence(request, id=None):
     if not request.user.is_superuser:
         return HttpResponse("{ \"status\": \"403\", \"message\":\"Error\"}", content_type="application/json", status=403)
     try:
-        inventory = Inventory.objects.get(enabled = True)
+        if id is None:
+            inventory = Inventory.objects.get(enabled = True)
+        else:
+            inventory = Inventory.objects.get(id = id)
         branch = inventory.branch
         ies = inventory.inventoryentry_set.all().order_by('product__name')
         response = HttpResponse(content_type="application/pdf")

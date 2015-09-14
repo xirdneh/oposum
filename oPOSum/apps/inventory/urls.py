@@ -17,7 +17,7 @@ urlpatterns = patterns('oPOSum.apps.inventory.views',
     url(r'^adjustments-inventory/?$', 'adjustments_inventory', name="inventory_adjustments-inventory"),
     url(r'^get-adjustments/(?P<id>[0-9]+)/?$', 'get_adjustments', name="inventory_get-adjustments"),
     url(r'^save-adjustments/?$', 'save_adjustments', name="inventory_save-adjustments"),
-    url(r'^print-inventory-existence/?$', 'print_inventory_existence', name="inventory_print-inventory_existence"),
+    url(r'^print-inventory-existence(/(?P<id>[0-9]+))?/?$', 'print_inventory_existence', name="inventory_print-inventory_existence"),
     url(r'^print-inventory-surplus/?$', 'print_inventory_surplus', name="inventory_print-inventory_surplus"),
     url(r'^print-inventory-missing/?$', 'print_inventory_missing', name="inventory_print-inventory_missing"),
 )

@@ -124,6 +124,8 @@ class PDFReporter:
         sl = styles['Normal']
         sl.alignment = TA_CENTER
         for e in entries:
+            if e.quantity == 0:
+                continue
             d = []
             d.append(e.product.name)
             p = Paragraph(e.product.description.encode('utf-8'), sp)
