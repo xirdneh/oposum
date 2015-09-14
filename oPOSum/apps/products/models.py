@@ -4,6 +4,8 @@ from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetai
 from oPOSum.apps.pos.models import Sale, SaleDetails
 from oPOSum.libs import utils as pos_utils
 from decimal import *
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 import json
 import pytz
@@ -101,6 +103,29 @@ class Product(models.Model):
             retail_price = self.regular_price
         return retail_price
 
+    def get_branch_transactions_count(self, branch):
+        inves = self.inventoryentry_set.filter(inv__branch = branch, inv__enabled = False).order_by('-date_time')
+        utc = pytz.timezone('UTC')
+        if(len(inves) > 0):
+            pinv = inves[0]
+            dt = pinv.inv.date_time
+        else:
+            pinv = None
+            dtu = datetime.utcnow()
+            dt = dtu - relativedelta(years = 100)
+        dt = dt.replace(tzinfo = utc)
+        ehds_positive = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas')
+        ehds_negative = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas')
+        sales = self.saledetails_set.filter(sale__branch = branch, sale__date_time__gte = dt)
+        if pinv is not None:
+            r_inv = pinv.quantity
+        else:
+            r_inv = 0
+        r_positive = reduce(lambda x, y: x + y.quantity, ehds_positive, 0)
+        r_negative = reduce(lambda x, y: x + y.quantity, ehds_negative, 0)
+        r_sales = reduce(lambda x, y: x + y.quantity, sales, 0)
+        return r_inv + r_positive - r_negative - r_sales
+
     def get_transactions(self):
         ret = {}
         inves = self.inventoryentry_set.filter(inv__enabled = False).order_by('inv').distinct('inv')
@@ -108,7 +133,6 @@ class Product(models.Model):
         invs = {}
         for i in inves:
             invs[i.inv.branch.name] = i.inv
-        logger.debug("Invs: {0}:".format(invs))
         inves = []
         for key, val in invs.items():
             inves += self.inventoryentry_set.filter(inv = val)

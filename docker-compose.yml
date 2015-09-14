@@ -16,3 +16,5 @@ web:
     links:
         - db
     command: ./manage.py runserver 0.0.0.0:9000
+   # command: ./manage.py migrate inventory
+

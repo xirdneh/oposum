@@ -63,17 +63,21 @@ $("#btn_guardar").click(function(e){
         var mod = $(this)
         var modal_body = mod.find("#mensaje-body");
         var body = "<p> Desea Guardar estos movimientos?" + 
-                   "</p>";
+                        "<br/> Favor de escrbir la razon de este movimiento" +
+                   "</p>" +
+                   "<textarea name='detmsg' id='detmsg' cols='50' rows='5'></textarea>";
         modal_body.html(body);
         var frm_aceptar = mod.find("#mensaje-aceptar-form");
         frm_aceptar.one('submit', function(e){
             e.preventDefault();
+            var $msg = modal_body.find('#detmsg').val();
             modal_body.html("<h2>Guardando datos...</h2>"); 
             var $td = JSON.stringify(dataView.getItems());
             var $branch = $("#select_branches")[0].options[$("#select_branches")[0].selectedIndex].value;
             var $data = {data:"{\"user\":\"" + $user +"\", "+ 
                            "\"branch\":\"" + $branch + "\", "+ 
-                           "\"details\":" + $td +"}" };
+                           "\"details\":" + $td +"," +
+                           "\"detmsg\":\"" + $msg  + "\"}"};
             var csrftoken = balco.get_cookie('csrftoken');
             $.ajax({
                 crossDomain: false,

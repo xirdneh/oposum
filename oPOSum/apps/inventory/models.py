@@ -25,6 +25,7 @@ class ExistenceHistory(models.Model):
     )
     printed = models.BooleanField(_("Enabled"), default=False)
     extra = models.CharField(_("Extra"), max_length=1024, blank=True, null=True)
+    details = models.TextField(_("Details"), blank=True, null=True)
 
     def __unicode__(self):
         return "{0}: {1} - {2}".format(self.id, self.branch.slug, self.date_time)
@@ -64,6 +65,7 @@ class Inventory(models.Model):
     date_time = models.DateTimeField(_("Date and Time"), auto_now = True)
     enabled = models.BooleanField(_("Enabled"), default=False)
     comments = models.TextField(_("Comments"), max_length=1024, blank=True)
+    adjusting = models.BooleanField(_("Adjusting"), default= False)
 
     def __unicode__(self):
         return "{0} - {1}".format(self.branch, self.date_time.strftime('%Y-%m-%d'))
@@ -77,7 +79,24 @@ class InventoryEntry(models.Model):
 
     def as_json(self):
         return dict(
+            id = self.id,
             slug = self.product.slug,
             desc = self.product.description,
             qty = self.quantity
+        )
+
+    def get_adjustment_count(self):
+        return reduce(lambda x, y: x + y.quantity, self.inventoryadjustment_set.all(), 0)
+
+class InventoryAdjustment(models.Model):
+    inventory_entry = models.ForeignKey(InventoryEntry)
+    quantity = models.IntegerField(_("Quantity"), default = 0, blank = False, null = False)
+    message = models.TextField(_("Message"), default = "", blank = False, null = False)
+
+    def as_json(self):
+        return dict(
+            id = self.id,
+            inventory_entry = self.inventory_entry.as_json(),
+            quantity = self.quantity,
+            message = self.message
         )

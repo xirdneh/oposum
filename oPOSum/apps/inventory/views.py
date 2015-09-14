@@ -1,7 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from oPOSum.apps.inventory.models import Inventory, InventoryEntry, Existence, ExistenceHistory, ExistenceHistoryDetail
+from oPOSum.apps.inventory.models import Inventory, InventoryEntry, Existence, ExistenceHistory, ExistenceHistoryDetail, InventoryAdjustment
 from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
@@ -37,9 +37,11 @@ def save_entries(request):
     u = User.objects.get(username = data['user'])
     b = Branch.objects.get(slug = data['branch'])
     details = data['details']
-
+    msg = data['detmsg']
     try:
         eh = ExistenceHistory(user = u, branch = b, action = 'altas')
+        if msg is not None and msg != '':
+            eh.details = msg
         eh.save();
         for d in details:
             p = Product.objects.get(slug = d['slug'].replace('-', ''))
@@ -60,21 +62,23 @@ def save_entries(request):
             ehd.save()
     except:
         logger.debug("Error while saving entries history \n{0}".format(traceback.format_exc()))
-        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
-    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", mimetype="application/json")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
+    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", content_type="application/json")
 
 @login_required
 def save_exits(request):
     data = json.loads(request.POST['data'])
-    logger.debug("Data to save for exits: {0}".format(data))
     u = User.objects.get(username = data['user'])
     b = Branch.objects.get(slug = data['branch'])
     details = data['details']
+    msg = data['detmsg']
     existence = []
     existence_errors = []
     isFine = True
     try:
         eh = ExistenceHistory(user = u, branch = b, action = 'bajas')
+        if msg is not None and msg != '':
+            eh.details = msg
         for d in details:
             p = Product.objects.get(slug = d['slug'].replace('-', ''))
             q = int(d['qty'])
@@ -111,12 +115,12 @@ def save_exits(request):
                                  \"products\":{0}}}
                     """.format(json.dumps(existence_errors))
             return HttpResponse(error,
-                                mimetype="application/json")
+                                content_type="application/json")
 
     except:
         logger.debug("Error while saving exits history \n{0}".format(traceback.format_exc()))
-        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
-    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", mimetype="application/json")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
+    return HttpResponse("{ \"status\": \"ok\", \"folio\":\"" + str(eh.id) + "\"}", content_type="application/json")
 
 @login_required
 def print_exits_report(request, id):
@@ -125,7 +129,7 @@ def print_exits_report(request, id):
         dt_now = datetime.utcnow().replace(tzinfo = pytz.utc)
         eh = ExistenceHistory.objects.get(id = id)
         ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
-        response = HttpResponse(mimetype='application/pdf')
+        response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'filename=Reporte_Entradas_' + eh.branch.name + '_' + eh.date_time.strftime('%d-%b-%Y') + '.pdf'
         header = """
                     <para fontSize = 12>
@@ -153,7 +157,7 @@ def print_exits_report(request, id):
         return response
     except:
         logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
-        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
 
 
 
@@ -164,7 +168,7 @@ def print_entries_report(request, id):
         dt_now = datetime.utcnow().replace(tzinfo = pytz.utc)
         eh = ExistenceHistory.objects.get(id = id)
         ehds = ExistenceHistoryDetail.objects.filter(existence = eh).order_by('product__name')
-        response = HttpResponse(mimetype='application/pdf')
+        response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'filename=Reporte_Entradas_' + eh.branch.name + '_' + eh.date_time.strftime('%d-%b-%Y') + '.pdf'
         header = """
                     <para fontSize = 12>
@@ -192,7 +196,7 @@ def print_entries_report(request, id):
         return response
     except:
         logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
-        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
 
 
 @login_required
@@ -205,11 +209,10 @@ def existence_history(request, id):
         return render_to_response('inventory/existence_history.html', { 'entries': json.dumps(ret), 'eh':eh.as_json()},context_instance=RequestContext(request))
     except:
         logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
-        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", mimetype="application/json")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
 
 @login_required
 def inventory_check(request):
-    logger.debug("Into the view")
     inventory = Inventory.objects.filter(enabled = True).order_by('date_time')
     branches = list(request.user.employee.branch.all())
     if len(inventory) > 0 and inventory[0].branch in branches:
@@ -236,7 +239,7 @@ def save_entry(request):
         inv = request.session.get('inventory_id', False)
 
         if not inv:
-            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
         logger.debug("Inventory id: {0}".format(inv))
         try: 
             inventory = Inventory.objects.get(id=inv)
@@ -249,16 +252,16 @@ def save_entry(request):
                             quantity = qty,
                             user = user)
                 ie.save()
-                return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", mimetype="application/json")
+                return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", content_type="application/json")
             logger.debug(inv_entry)
             inv_entry.quantity += qty
             inv_entry.date_time = datetime.now()
             inv_entry.save()
-            return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", mimetype="application/json")
+            return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", content_type="application/json")
         except:
             logger.error("Unexpected error:{0} ".format(sys.exc_info()[0]))
             logger.error("Error data: {0}".format(post_json))
-            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
 
 
 @login_required
@@ -273,7 +276,7 @@ def delete_entry(request):
         inv = request.session.get('inventory_id', False)
         if not inv:
             logger.error("No inventory found")
-            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
         try:
             inventory = Inventory.objects.get(id=inv)
             try:
@@ -281,21 +284,41 @@ def delete_entry(request):
 
             except InventoryEntry.DoesNotExist:
                 logger.error("No entry found")
-                return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+                return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
             logger.debug(inv_entry)
             if (inv_entry.quantity - qty) < 0:
                 logger.error("Negative Quantity:{0} ".format(qty))
-                return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+                return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
             else:
                 inv_entry.quantity -= qty
                 inv_entry.date_time = datetime.now()
                 inv_entry.save()
-                return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", mimetype="application/json")
+                return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\"}", content_type="application/json")
         except:
-            logger.error("Unexpected error:{0} ".format(sys.exc_info()[0]))
             logger.error("Unexpected error:\n{0} ".format(traceback.format_exc()))
             logger.error("Error data: {0}".format(post_json))
-            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", mimetype="application/json")
+            return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json")
+
+@login_required
+def update_entry(request):
+    if not request.is_ajax():
+        return HttpResponse(null, status=404)
+    post_json = json.loads(request.POST['data'])
+    eid = post_json['id']
+    qty = post_json['qty']
+    inv = request.session.get('inventory_id', False)
+    if not inv:
+        logger.error("No inventory found")
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json", status=404)
+    try:
+        inventory = Inventory.objects.get(id = inv)
+        inv_entry = InventoryEntry.objects.get(inv = inventory, id = eid)
+        inv_entry.quantity = qty
+        inv_entry.save()
+        return HttpResponse("{ \"status\": \"ok\", \"message\":\"OK\", \"id\":\"" + str(inv_entry.id) + "\", \"qty\":\"" + str(inv_entry.quantity) + "\"}", content_type="application/json")
+    except:
+        logger.error("Unexpected error:\n{0} ".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"error\", \"message\":\"No inventory\"}", content_type="application/json", status=500)
 
 
 @login_required
@@ -314,4 +337,180 @@ def current_inventory(request):
         logger.error("Unexpected error:\n{0} ".format(traceback.format_exc()))
         return render_to_response('inventory/current_inventory.html', { 'entries': [] },context_instance=RequestContext(request))
 
+@login_required
+def adjustments_inventory(request):
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        branch = inventory.branch
+        ies = inventory.inventoryentry_set.all().order_by('product__name')
+        entries = []
+        for ie in ies:
+            tcount = ie.product.get_branch_transactions_count(branch)
+            adjcnt = ie.get_adjustment_count()
+            diff = tcount - ie.quantity - adjcnt
+            entries.append({'entry': ie, 'tcount': tcount, 'diff': diff, 'adjcnt': adjcnt})
+        exs = Existence.objects.filter(branch = branch)
+        for ex in exs:
+            ies = inventory.inventoryentry_set.filter(product = ex.product)
+            if len(ies) > 0:
+                continue
+            sq = ex.product.get_branch_transactions_count(branch)
+            if sq == 0:
+                continue
+            ie = InventoryEntry(inv = inventory,
+                                product = ex.product,
+                                quantity = 0,
+                                user = request.user)
+            ie.save()
+            entries.append({'entry': ie, 'tcount': sq, 'diff': sq, 'adjcnt': 0})
+        return render_to_response('inventory/adjustments_inventory.html', { 'entries': entries, 'inv_branch':inventory.branch.slug, 'inventory':inventory, 'enbale_form':True}, context_instance=RequestContext(request))
+    except:
+        logger.error("No inventory found")
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return render_to_response('inventory/adjustments_inventory.html', { 'entries': [] }, context_instance=RequestContext(request))
     #ret = [sale.as_json() for sale in sales]
+
+@login_required
+def get_adjustments(request, id):
+    if not request.is_ajax():
+        logger.debug("Request is not ajax")
+        return HttpResponse("{ \"status\": \"404\", \"message\":\"No inventory\"}", content_type="application/json", status=404)
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        ies = inventory.inventoryentry_set.filter(id = id)
+        if len(ies):
+            ie = ies[0]
+        else:
+            logger.debug("No products found")
+            return HttpResponse("{ \"status\": \"500\", \"message\":\"No product found\"}", content_type="application/json", status=500)
+        adjs = ie.inventoryadjustment_set.all()
+        ret = [adj.as_json() for adj in adjs]
+        return HttpResponse("{ \"status\": \"200\", \"message\":\"ok\", \"adjustments\": " + json.dumps(ret) + ", \"id\":\"" + id + "\"}", content_type="application/json")
+    except:
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"500\", \"message\":\"Error\"}", content_type="application/json", status=500)
+
+@login_required
+def save_adjustments(request):
+    if not request.is_ajax():
+        logger.debug("Request is not ajax")
+        return HttpResponse("{ \"status\": \"404\", \"message\":\"No inventory\"}", content_type="application/json", status=404)
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        post_json = json.loads(request.POST['data'])
+        id = post_json['id']
+        qty = post_json['qty']
+        msg = post_json['msg']
+        ies = inventory.inventoryentry_set.filter(id = id)
+        if len(ies):
+            ie = ies[0]
+        else:
+            logger.debug("No products found")
+            return HttpResponse("{ \"status\": \"404\", \"message\":\"No product found\"}", content_type="application/json", status = 404)
+        adj = InventoryAdjustment(inventory_entry = ie, quantity = qty, message = msg)
+        adj.save()
+        adjs = ie.inventoryadjustment_set.all()
+        ret = [adj.as_json() for adj in adjs]
+        logger.debug("ret: {0}".format(ret))
+        return HttpResponse("{ \"status\": \"200\", \"message\":\"ok\", \"adjustments\": " + json.dumps(ret) + ", \"id\":" + str(ie.id) + "}", content_type="application/json")
+    except:
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return HttpResponse("{ \"status\": \"500\", \"message\":\"Error\"}", content_type="application/json", status=500)
+        
+@login_required
+def print_inventory_existence(request):
+    if not request.user.is_superuser:
+        return HttpResponse("{ \"status\": \"403\", \"message\":\"Error\"}", content_type="application/json", status=403)
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        branch = inventory.branch
+        ies = inventory.inventoryentry_set.all().order_by('product__name')
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'filename=Reporte_Existencias_inv_' + inventory.branch.name + '_' + inventory.date_time.strftime('%d-%b-%Y') + '.pdf'
+        header = """
+                    <para fontSize = 12>
+                        Reporte inventario {0} al {1}
+                    </para>
+                """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        footer = """
+                    <para fontSize = 12>
+                        Reporte inventario {0} al {1}
+                    </para>
+                 """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        pdf = PDFReporter(response, 'Letter', header, footer)
+        response = pdf.print_inventory_existence(ies, "Reporte de inventario {0} al {1}".format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y')))
+        return response
+    except:
+        logger.error("No inventory found")
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return HttpResponse("Error", status=500)
+
+@login_required
+def print_inventory_surplus(request):
+    if not request.user.is_superuser:
+        return HttpResponse("{ \"status\": \"403\", \"message\":\"Error\"}", content_type="application/json", status=403)
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        branch = inventory.branch
+        ies = inventory.inventoryentry_set.all().order_by('product__name')
+        entries = []
+        for ie in ies:
+            tcount = ie.product.get_branch_transactions_count(branch)
+            adjcnt = ie.get_adjustment_count()
+            diff = tcount - ie.quantity - adjcnt
+            if diff < 0:
+                entries.append({'entry': ie, 'tcount': tcount, 'diff': diff, 'adjcnt': adjcnt})
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'filename=Reporte_Posible_Sobrante_inv_' + inventory.branch.name.replace(' ', '_') + '_' + inventory.date_time.strftime('%d-%b-%Y') + '.pdf'
+        header = """
+                    <para fontSize = 12>
+                        Reporte Posible Sobrante {0} al {1}
+                    </para>
+                """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        footer = """
+                    <para fontSize = 12>
+                        Reporte Posible Sobrante {0} al {1}
+                    </para>
+                 """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        pdf = PDFReporter(response, 'Letter', header, footer)
+        response = pdf.print_inventory_surplus(entries, "Reporte Posible Sobrante {0} al {1}".format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y')))
+        return response
+    except:
+        logger.error("No inventory found")
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return HttpResponse("Error", status=500)
+
+@login_required
+def print_inventory_missing(request):
+    if not request.user.is_superuser:
+        return HttpResponse("{ \"status\": \"403\", \"message\":\"Error\"}", content_type="application/json", status=403)
+    try:
+        inventory = Inventory.objects.get(enabled = True)
+        branch = inventory.branch
+        ies = inventory.inventoryentry_set.all().order_by('product__name')
+        entries = []
+        for ie in ies:
+            tcount = ie.product.get_branch_transactions_count(branch)
+            adjcnt = ie.get_adjustment_count()
+            diff = tcount - ie.quantity - adjcnt
+            if diff > 0:
+                entries.append({'entry': ie, 'tcount': tcount, 'diff': diff, 'adjcnt': adjcnt})
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'filename=Reporte_Posible_Faltante_inv_' + inventory.branch.name.replace(' ', '_') + '_' + inventory.date_time.strftime('%d-%b-%Y') + '.pdf'
+        header = """
+                    <para fontSize = 12>
+                        Reporte Posible Faltante {0} al {1}
+                    </para>
+                """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        footer = """
+                    <para fontSize = 12>
+                        Reporte Posible Faltante {0} al {1}
+                    </para>
+                 """.format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y'))
+        pdf = PDFReporter(response, 'Letter', header, footer)
+        response = pdf.print_inventory_missing(entries, "Reporte Posible Faltante {0} al {1}".format(inventory.branch.name, inventory.date_time.strftime('%d-%b-%Y')))
+        return response
+    except:
+        logger.error("No inventory found")
+        logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
+        return HttpResponse("Error", status=500)

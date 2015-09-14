@@ -10,6 +10,9 @@
 {% if enable_form %}
     <h1> {{ inventory }} </h1>
     <p> {{ inventory.comments }} </p>
+    {% if inventory.adjusting %}
+        <a href="/inventory/adjustments-inventory" class="btn btn-info pull-right">Ajustes</a>
+    {% endif %}
     <div id="user_branch"></div>
     <div class="main_fields">
         <label for="product_code">Codigo:</label>
