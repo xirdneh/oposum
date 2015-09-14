@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+    <h1> {{ inventory }} </h1>
+    <p> {{ inventory.comments }} </p>
+    <div id="user_branch"></div>
+    <!--
+    <div class="main_fields">
+        <label for="product_code">Codigo: </label>
+        <input type="text" name="product_code" id="product_code" size="50" />
+        <label for = "product_qty">Cantidad: </label>
+        <input type="number" name="product_qty" id="product_qty" size="5" value ="1" step="1" />
+    </div>
+    -->
+    <div id="filter-controls">
+        <label for='filter-select'>Mostrar: </label>
+        <select name='filter-select' id='filter-select'>
+            <option value='todo'>Todo</option>
+            <option value='faltante'>Posible Faltante</option>
+            <option value='sobrante'>Posible Sobrante</option>
+        </select>
+    </div>
+    {% if request.user.is_superuser %}
+        <div id="super-controls">
+            <a target="_blank" href="/inventory/print-inventory-existence" id="super-print-existence" class="btn btn-info">Imprimir Existencias</a>
+            <a target="_blank" href="/inventory/print-inventory-surplus" id="super-print-surplus" class="btn btn-info">Imprimir Sobrante</a>
+            <a target="_blank" href="/inventory/print-inventory-missing" id="super-print-missing" class="btn btn-info">Imprimir Faltante</a>
+        </div>
+    {% endif %}
+    <div id="prod_info"></div>
+    <div id="table-view">
+        <table class="table table-striped" id="adjustments-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Existencia</th>
+                    <th>Systema</th>
+                    <th>Ajustes</th>
+                    <th>Diferencia</th>
+                    <th style="width:150px">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in entries %}
+                    <tr data-id="{{e.entry.id}}">
+                        <td><a target="_blank" href="/products/show-transactions/{{e.entry.product.slug}}">
+                            {{e.entry.product.name}}</a>
+                        </td>
+                        <td>{{e.entry.product.description}}</td>
+                        <td>{{e.entry.quantity}}</td>
+                        <td>{{e.tcount}}</td>
+                        <td>{{ e.adjcnt }}</td>
+                        <td class="{% if e.diff == 0 %}
+                            success
+                            {% elif e.diff > 0 %}
+                            danger
+                            {% elif e.diff < 0 %}
+                            warning
+                            {% endif %}
+                            ">
+                            {{ e.diff }}
+                        </td>
+                        <td>
+                            <a class='inv-edit btn btn-info btn-sm' href='#'>Editar</a>
+                            <a class='show-adjustments btn btn-warning btn-sm' href='#'>Ajustes</a>
+                        </td> 
+                    </tr>    
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="save_form">
+        <!--form action="" method="post" id="save_ticket" name="save_ticket"-->
+           <!-- <button id="btn_guardar" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#guardar">Guardar</button> -->
+        <!--/form-->
+
+        <!-- MODAL -->
+            <div class="modal fade" id="mensaje" tabindex="-1" rolde="dialog" arial-labelledby="mensaje" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="mensaje-title">Verificar detalles del producto</h4>
+                        </div>
+                        <div class="modal-body" id="mensaje-body">
+                        </div>
+                        <div class="modal-footer">
+                             <button type="button" class="pull-left btn btn-default" data-dismiss="modal">Cancelar</button>
+                             <form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form">
+                                 <button type="submit" id="mensaje-aceptar" class="btn btn-primary">Aceptar</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+{% addtoblock "js" %}
+    <script type="text/javascript">
+            balco.print_branches_selector("user_branch", {{ request.session.user_branches|safe}});
+            balco.select_init_branch("select_branches", "{{ inv_branch }}");
+        </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/inventory_adjustments.js"></script>
+{% endaddtoblock %}
+{% endblock %}
