@@ -34,6 +34,7 @@ class Client(models.Model):
 
     def as_json(self):
         return dict(
+            id = self.id,
             first_name = self.first_name.encode('latin-1'),
             last_name = self.last_name.encode('latin-1'),
             phonenumber = self.phonenumber,

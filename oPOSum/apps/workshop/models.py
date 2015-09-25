@@ -17,16 +17,16 @@ class WorkshopTicketManager(models.Manager):
             payments = tickets.workshoppayment_set.all()
 
 class WorkshopTicket(models.Model):
-    branch = models.ForeignKey(Branch)
+    branch = models.ForeignKey(Branch, related_name='branch_set')
     client = models.ForeignKey(Client, null=True)
-    user = models.User(user)
+    user = models.ForeignKey(User)
     date_time = models.DateTimeField(_("Date and Time"), auto_now_add = True)
     date_time_end = models.DateTimeField(_("Date and Time of Delivery"), blank = True, null = False)
     folio_number = models.PositiveIntegerField(_("Folio Number"), blank = True, null = True, default = 0)
-    workshop = models.ForeignKey(Branch)
+    workshop = models.ForeignKey(Branch, related_name='workshop_set')
     total_cost = models.DecimalField(_("Total Cost"), max_digits=10, decimal_places=2, default = Decimal(0.0))
     time_to_complete = models.PositiveIntegerField(_("Time to Complete"), default = 5)
-    current_location = models.ForeignKey(Branch)
+    current_location = models.ForeignKey(Branch, related_name='current_location_set')
     is_active = models.BooleanField(_("Is Active"), default=True)
     objects = WorkshopTicketManager()
 

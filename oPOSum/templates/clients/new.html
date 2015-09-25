@@ -51,14 +51,14 @@
                 <tbody>
                     {% for l in layaways %}
                         <tr>
-                            <td>{{l.layaway.branch.name}}</td>
-                            <td>{{l.layaway.date_time|date:"d/m/y"}}</td>
-                            <td>{{l.layaway.amount_to_pay|stringformat:"0.2f"}}</td>
-                            <td>{{l.layaway.get_debt_amount|stringformat:"0.2f"}}</td>
+                            <td style="background:#ccc;">{{l.layaway.branch.name}}</td>
+                            <td style="background:#ccc;">{{l.layaway.date_time|date:"d/m/y"}}</td>
+                            <td style="background:#ccc;">{{l.layaway.amount_to_pay|stringformat:"0.2f"}}</td>
+                            <td style="background:#ccc;">{{l.layaway.get_debt_amount|stringformat:"0.2f"}}</td>
                         </tr>
                         <tr>
-                            <td colspan="4">
-                        <table class="table table-striped" style="width:60%; margin:0 auto;">
+                            <td colspan="4" style="background:white;">
+                        <table class="table table-striped" style="width:80%; margin:0 auto;">
                             <tbody>
                             <tr>
                                 <td colspan="4" style="text-align:center;">
@@ -82,6 +82,33 @@
                                 </td>
                             </tr>
                         </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="background:white;">
+                            <div class="pane panel-info" style="width:80%; margin:0 auto;">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" href="#abonos-{{l.layaway.id}}"><span style="display:inline-block; width:100%;">Abonos</span></a>
+                                </div>
+                         <table class="collapse" id = "abonos-{{l.layaway.id}}" class="table table-striped" style="width:100%">
+                            <tbody>
+                                {% for p in l.payments %}
+                                <tr>
+                                    <td>
+                                        {{p.branch}}
+                                    </td>
+                                    <td>
+                                        {{p.date_time|date:"d/m/y"}}
+                                    </td>
+                                    <td>
+                                        {{p.amount|stringformat:"0.2f"}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table> 
+                            </div>
+
                             </td>
                         </tr>
                     {% endfor %}

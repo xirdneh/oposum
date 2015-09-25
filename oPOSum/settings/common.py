@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     'oPOSum.apps.pos',
     'oPOSum.apps.client',
     'oPOSum.apps.layaway',
+    'oPOSum.apps.workshop',
     'oPOSum.apps.authentication',
     'oPOSum.libs',
 )
