@@ -5,3 +5,4 @@ Pillow
 reportlab
 pytz
 psycopg2
+python-dateutil

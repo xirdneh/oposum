@@ -62,7 +62,7 @@ class InventoryFolio(models.Model):
 
 class Inventory(models.Model):
     branch = models.ForeignKey(Branch, default = 0)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now = True)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now_add = True)
     enabled = models.BooleanField(_("Enabled"), default=False)
     comments = models.TextField(_("Comments"), max_length=1024, blank=True)
     adjusting = models.BooleanField(_("Adjusting"), default= False)
