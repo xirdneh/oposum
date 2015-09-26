@@ -117,9 +117,14 @@
             {% endif %}
         {% endif %}
         {% if 'repairshop' in apps %}
+            <h2>Reparaciones Pendientes</h2>
+            <button id="workshop_ticket_add" class="btn btn-info">Agregar Reparación</button>
+            {% if workshop_tickets|length > 0 %} 
             {% comment %}
                 TODO: Implement reparishop quick view.
             {% endcomment %}
+
+            {% endif %}
         {% endif %}
     {% else %}
     <div class="client-form standard-form">

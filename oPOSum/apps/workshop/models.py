@@ -41,6 +41,9 @@ class WorkshopTicket(models.Model):
         self.tota_cost = total
         self.save()
 
+    def get_last_payemnt(self):
+        return self.workshoppayment_set.order_by('date_time').last()
+
     def save(self, *args, **kwargs):
         if not self.pk:
             dt = datetime.utcnow()

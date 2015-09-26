@@ -50,6 +50,11 @@ def new(request, client_id = None):
                     ls = [{'layaway': l, 'last_payment': l.get_last_payment(), 'payments': l.layawayhistory_set.all().order_by('date_time')}
                           for l in Layaway.objects.filter(client = c).order_by('-date_time')]
                     ret['layaways'] = ls
+                if 'workshop' in apps:
+                    from oPOSum.apps.workshop.models import WorkshopTicket
+                    wts = [{'workshop_ticket': wt, 'last_payment': wt.get_last_payment(), 'payments': wt.workshoppayment_set.all().order_by('date_time')}
+                            for wt in WorkshopTicket.objects.filter(client = c).order_by('date-time')]
+                    ret['workshop_tickets'] = wts
                 return render_to_response('clients/new.html',ret , context_instance=RequestContext(request))
             except Client.DoesNotExist:
                 logger.debug("Search client id doesn't exist {0}".format(client_id))
