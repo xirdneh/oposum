@@ -84,30 +84,24 @@ def save_exits(request):
             q = int(d['qty'])
             try:
                 e = Existence.objects.get(branch = b, product = p)
-                if(isFine and e.quantity >= q):
+                if(isFine and e.product.get_branch_transactions_count(b) >= q):
                     existence.append((p, 'fine', q, e))
                 else:
                     isFine = False
-                    if(e.quantity < q):
-                        existence_errors.append((e.product.name, 'qty', e.quantity))
+                    if(e.product.get_branch_transactions_count(b) < q):
+                        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
             except Existence.DoesNotExist:
                 isFine = False
                 existence_errors.append((p.name, 'exist', 0))
-            #e.quantity -= q
-            #e.save()
-            #logger.debug("Existence saved: {0}".format(e))
         if isFine:
             eh.save();
             for p in existence:
-                logger.debug("p = {0}".format(p))
                 try:
                     ehd = ExistenceHistoryDetail.objects.get(product = p[0], existence = eh)
                     ehd.quantity += p[2]
                 except ExistenceHistoryDetail.DoesNotExist:
                     ehd = ExistenceHistoryDetail(product = p[0], quantity = p[2], existence = eh)
                 ehd.save()
-                p[3].quantity -= p[2]
-                p[3].save()
         else:
             logger.debug("Error while saving exits history \n{0}".format(traceback.format_exc()))
             error = """{{ \"status\": \"error\", 
