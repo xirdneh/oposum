@@ -78,8 +78,6 @@ if(add_layway_btn){
                     save_layaway(data);
                 }
             });
-
-
         });
         modal.modal('show');
         modal.one('hidden.bs.modal', function(e){
@@ -326,6 +324,7 @@ function print_layaway_ticket(data){
     var payment = data.payment;
     var $folio = layaway.id;
     var tb = "";
+    var tmptb = "";
     var $amt_to_pay = $("#layaway-payment").val();
     var $pay = $("#layaway-pay").val();
     var $pay_type = $("#layaway-type").val();
@@ -338,8 +337,8 @@ function print_layaway_ticket(data){
         print = !notReady();
     }
     if(print){
-        $now = new Date(data.date_time);
-        tb += data.ticket_pre;
+        $now = new Date(data.layaway.date_time);
+        tb += data.branch.ticket_pre;
         tb += "\n\r";
         if(!$now){
             $now = new Date();
@@ -362,7 +361,7 @@ function print_layaway_ticket(data){
         tb += "Saldo Total: \t" + layaway.total_debt_amount + "\n\r";
         tb += "\n\r\n\r\n\r";
         tb += "Los detalles listados en esta nota representan los articulos pertenecientes a un separado. Estos articulos no se entregaran hasta que no se cubra todo el saldo pendiente. Este separado sera valido por " + layaway.type + " dias apartir del " + layaway.date_time + ".\n\r";
-        tb += data.ticket_post;
+        tb += data.branch.ticket_post;
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
@@ -372,8 +371,9 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += chr(27) + chr(105);
         tb += "\x1B\x69";
+        tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
-        tb += tb;
+        tb += tmptb;
         if(console){
             console.log(tb);
         }
@@ -386,7 +386,7 @@ function print_layaway_ticket(data){
             }
         }
         tb = "";
-        tb += data.ticket_pre;
+        tb += data.branch.ticket_pre;
         tb += "\n\r";
         if(!$now){
             $now = new Date();
@@ -405,7 +405,7 @@ function print_layaway_ticket(data){
         tb += "\n\r Saldo Total: \t" + layaway.total_debt_amount ;
         tb += "\n\r Fecha de vencimiento: \t " + layaway.date_end;
         tb += "\n\r\n\r Este recibo representa un abono a un separado. El saldo total es la cantidad a pagar calculado al dia que se especifica en este ticket.\n\r\n\r";
-        tb += data.ticket_post;
+        tb += data.branch.ticket_post;
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
@@ -415,8 +415,9 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += chr(27) + chr(105);
         tb += "\x1B\x69";
+        tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
-        tb += tb;
+        tb += tmptb;
         if(console){
             console.log(tb);
         }
@@ -575,48 +576,94 @@ function print_payment_ticket(data){
     var $now;
     var payment = data.payment;
     var layaway = data.layaway;
-    $.ajax({
-        dataType:"jsonp",
-        url:"//www.timeapi.org/utc/now.json",
-        success:function(d){
-                var $utc = new Date(d.dateString);
-                $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 5);
-            }
-    }).done(function(d){
-        var $amt_to_pay = $("#layaway-payment").val();
-        var $pay = $("#layaway-pay").val();
-        var $pay_type = $("#layaway-type").val();
-        var $change = $("#layaway-change").val();
-        var print = true;
-        var tb = "";
-        if(balco.debug){
-            print = true;
+    var $now = new Date(payment.date_time);
+    var $amt_to_pay = $("#layaway-payment").val();
+    var $pay = $("#layaway-pay").val();
+    var $pay_type = $("#layaway-type").val();
+    var $change = $("#layaway-change").val();
+    var print = true;
+    var tb = "";
+    var tmptb = "";
+    if(balco.debug){
+        print = true;
+    }
+    else {
+        print = !notReady();
+    }
+    if(print){
+        tb += data.branch.ticket_pre;
+        tb += "\n\r";
+        if(!$now){
+            $now = new Date();
         }
-        else {
-            print = !notReady();
+        tb += "============= Abono de Separado =============";
+        tb += '\n\r\t Fecha: ' + $now.getDate() + '/' 
+                                   + (+$now.getMonth() + 1) + '/' 
+                                   + $now.getFullYear() + '\n\r';
+        tb += '\n\r\t Folio: ' + payment.id;
+        tb += '\n\r\t Folio de Separado: ' + layaway.id + '\n\r';
+        tb += "\n\r\t Nombre: " + layaway.client.first_name + " " + layaway.client.last_name + "\n\r";
+        tb += "\n\r Tipo de Pago: \t" + payment.payment_type ;
+        tb += "\n\r Cantidad: \t" + payment.amount;
+        tb += "\n\r Su Pago: \t $" + $("#layaway-pay").val() + "=";
+        tb += "\n\r Cambio: \t $" + $("#layaway-change").val() + "=";
+        tb += "\n\r Saldo Total: \t" + layaway.total_debt_amount ;
+        tb += "\n\r Fecha de vencimiento: \t " + layaway.date_end;
+        tb += "\n\r\n\r Este recibo representa un abono a un separado. El saldo total es la cantidad a pagar calculado al dia que se especifica en este ticket.\n\r\n\r";
+        tb += data.branch.ticket_post;
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += "\n\r";
+        tb += chr(27) + chr(105);
+        tb += "\x1B\x69";
+        tmptb = tb;
+        tb += "\n\r\t**********COPIA**********\t\n\r";
+        tb += tmptb;
+        if(console){
+            console.log(tb);
         }
-        if(print){
-            tb += data.ticket_pre;
+        try{
+            qz.append(tb);
+            qz.print();
+        }catch(e){
+            console.log("No Printer");
+        }
+
+        
+        if(layaway.total_debt_amount == "$0.00="){
+            tb = "";
+            tmptb = "";
+
+            tb += data.branch.ticket_pre;
             tb += "\n\r";
             if(!$now){
                 $now = new Date();
             }
-            tb += "============= Abono de Separado =============";
+            tb += "============= Resumen de Separado =============";
             tb += '\n\r\t Fecha: ' + $now.getDate() + '/' 
                                        + (+$now.getMonth() + 1) + '/' 
                                        + $now.getFullYear() + '\n\r';
-            tb += '\n\r\t Folio: ' + payment.id;
             tb += '\n\r\t Folio de Separado: ' + layaway.id + '\n\r';
             tb += "\n\r\t Nombre: " + layaway.client.first_name + " " + layaway.client.last_name + "\n\r";
-            tb += "\n\r Tipo de Pago: \t" + payment.payment_type ;
-            tb += "\n\r Cantidad: \t" + payment.amount;
-            tb += "\n\r Su Pago: \t $" + $("#layaway-pay").val() + "=";
-            tb += "\n\r Cambio: \t $" + $("#layaway-change").val() + "=";
             tb += "\n\r Saldo Total: \t" + layaway.total_debt_amount ;
-            tb += "\n\r Fecha de vencimiento: \t " + layaway.date_end;
-            tb += "\n\r\n\r Este recibo representa un abono a un separado. El saldo total es la cantidad a pagar calculado al dia que se especifica en este ticket.\n\r\n\r";
-            tb += data.ticket_post;
+
+            tb += "\n\tCodigo\tPrecio\tCantidad\n\r\n\r";
+            var id = 1;
+            var p;
+            for(var pi = 0; pi < layaway.products.length; pi++){
+                p = layaway.products[pi];
+                tb += id + " \t " + p.product.slug + " \t " + p.product.retail_price + " \t " + p.qty + "\n\r";
+                id++;
+            }
+            tb += "Total del Separado: \t" + layaway.amount_to_pay + "\n\r";
+            tb += "\n\r\n\r\n\r";
+            tb += "Los detalles listados en esta nota representan los articulos pertenecientes a un separado. Estos articulos no se entregaran hasta que no se cubra todo el saldo pendiente. Este separado sera valido por " + layaway.type + " dias apartir del " + layaway.date_time + ".\n\r";
+
+            tb += data.branch.ticket_post;
             tb += "\n\r";
             tb += "\n\r";
             tb += "\n\r";
@@ -626,8 +673,9 @@ function print_payment_ticket(data){
             tb += "\n\r";
             tb += chr(27) + chr(105);
             tb += "\x1B\x69";
+            tmptb = tb;
             tb += "\n\r\t**********COPIA**********\t\n\r";
-            tb += tb;
+            tb += tmptb;
             if(console){
                 console.log(tb);
             }
@@ -637,9 +685,10 @@ function print_payment_ticket(data){
             }catch(e){
                 console.log("No Printer");
             }
-            $("#mensaje button").prop('disabled', false);
-            window.location = '/clients/new/' + layaway.client.id;
         }
-    });
+
+        $("#mensaje button").prop('disabled', false);
+        window.location = '/clients/new/' + layaway.client.id;
+    }
 }
 

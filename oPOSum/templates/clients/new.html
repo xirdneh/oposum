@@ -111,6 +111,39 @@
 
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="4" style="background:white;">
+                            <div class="pane panel-info" style="width:80%; margin:0 auto;">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" href="#products-{{l.layaway.id}}"><span stlye="display:inline-block; width:100%;">Artículos</span></a>
+                                </div>
+                        <table class="collapse" id="products-{{l.layaway.id}}" class="table table-striped" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                            {% for p in l.products %}
+                                <tr>
+                                    <td>{{p.prod.name}}</td>
+                                    <td>{{p.prod.description}}</td>
+                                    <td>{{p.qty}}</td>
+                                    {% if p.price|stringformat:"0.2f" == "0.00" %}
+                                    <td>{{p.prod.retail_price|stringformat:"0.2f"}}</td>
+                                    {% else %}
+                                    <td>{{p.price|stringformat:"0.2f"}}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                            </div>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>

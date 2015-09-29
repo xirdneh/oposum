@@ -115,8 +115,6 @@ def save_payment(request):
         json_data = json.loads(request.POST['data'])
         branch_slug = json_data['branch_slug']
         if pos_utils.is_employee_in_branch(request, branch_slug):
-            logger.debug("We have permission in Branch")
-            logger.debug(json_data)
             b = Branch.objects.get(slug = branch_slug)
             payment_type = json_data['payment_type']
             payment = json_data['payment']
@@ -149,5 +147,4 @@ def save_payment(request):
                                              json.dumps(layaway.as_json()),
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
-
     return render_to_response('/layaway/index.html', context_instance=RequestContext(request))

@@ -47,7 +47,7 @@ def new(request, client_id = None):
                 ret = { 'form': form, 'client':c, 'apps':apps }
                 if 'layaway' in apps:
                     from oPOSum.apps.layaway.models import Layaway
-                    ls = [{'layaway': l, 'last_payment': l.get_last_payment(), 'payments': l.layawayhistory_set.all().order_by('date_time')}
+                    ls = [{'layaway': l, 'last_payment': l.get_last_payment(), 'payments': l.layawayhistory_set.all().order_by('date_time'), 'products': l.layawayproduct_set.all()}
                           for l in Layaway.objects.filter(client = c).order_by('-date_time')]
                     ret['layaways'] = ls
                 if 'workshop' in apps:
