@@ -116,12 +116,21 @@ function setup_price_input(pi){
     pi.keyup(function(e){
         if(e.keyCode == 13){
             var val = pi.val().split("*");
+            var code, qty, price;
             if(val.length > 1){
-                var code = val[1];
-                var qty = +val[0];
+                code = val[1];
+                qty = +val[0];
             }else{
-                var code = val[0];
-                var qty = 1;
+                code = val[0];
+                qty = 1;
+            }
+            var cp = code.split(" ");
+            if(cp.length > 1){
+                code = cp[0];
+                price = cp[1];
+            }else{
+                code = cp[0];
+                price = 0;
             }
             $.ajax({
                 method:"get",
@@ -129,7 +138,7 @@ function setup_price_input(pi){
                 success:function(data){
                     $prod = data.product;
                     if(data.status == 'ok' && data.message == "Existente"){
-                        add_prod_table($prod, qty);
+                        add_prod_table($prod, qty, price);
                         pi.val("");
                         pi.focus();
                     }
@@ -139,7 +148,7 @@ function setup_price_input(pi){
     });
 }
 
-function add_prod_table(p, q){
+function add_prod_table(p, q, pr){
     var t = $("#layaway-prods");
     var tbody = t.find("tbody");
     var trs = tbody.find("tr");
@@ -151,12 +160,13 @@ function add_prod_table(p, q){
         id = +td.text();
     }
     id += 1;
+    pr = pr == 0 ? p.retail_price : pr;
     var row = $("<tr>" +
         "<td>" + id + "</td>" +
         "<td>" + p.slug + "</td>" +
         "<td>" + p.description + "</td>" +
         "<td>" + q + "</td>" +
-        "<td>" + p.retail_price + "</td>" +
+        "<td>" + pr + "</td>" +
     "</tr>");
     row.on('dblclick', delete_row);
     tbody.append(row);

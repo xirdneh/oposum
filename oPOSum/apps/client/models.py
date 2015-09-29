@@ -9,7 +9,7 @@ class Client(models.Model):
     first_name = models.CharField(_("First Name"), max_length=100, blank=False)
     last_name = models.CharField(_("Last Name"), max_length = 512, blank=False)
     phonenumber = models.CharField(_("Phone Number"), 
-                  max_length=512, blank=False, unique=True, 
+                  max_length=512, blank=True, unique=False, null=True, 
                 validators = [
                     RegexValidator(r'[0-9]{3}\-?[0-9]{3}\-?[0-9]{4}', 
                                    'Format: 834-117-1086', 
@@ -25,12 +25,15 @@ class Client(models.Model):
                 ('OTRO', 'Otro'),
               ))
     id_number = models.CharField(_("Identification Number"), max_length=255, blank=True)
-    email = models.EmailField(_("Email"), max_length = 255, blank=True, unique=True)
+    email = models.EmailField(_("Email"), max_length = 255, blank=True, unique=False)
 
     class Meta:
-        unique_together = (('first_name', 'last_name'))
+        unique_together = (('first_name', 'last_name', 'phonenumber', 'email'))
         verbose_name = "client"
         verbose_name_plural = "clients"
+
+    def __unicode__(self):
+        return u"{0} {1}. {2}, {3}".format(self.first_name, self.last_name, self.phonenumber, self.email)
 
     def as_json(self):
         return dict(

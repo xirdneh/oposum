@@ -20,7 +20,8 @@ class LayawayManager(models.Manager):
                     ret = False
         if cnt > 2:
             ret = False
-        return ret
+        #return ret
+        return True
 
     def get_total_debt_amount(self, client):
         ret = Decimal(0)
@@ -69,7 +70,10 @@ class Layaway(models.Model):
         ps = self.layawayproduct_set.all()
         total = Decimal(0.0)
         for p in ps:
-            total += p.prod.get_retail_price() * Decimal(p.qty)
+            if p.price == Decimal(0.0):
+                total += p.prod.get_retail_price() * Decimal(p.qty)
+            else:
+                total += p.price * Decimal(p.qty)
         self.amount_to_pay = total
         self.save()
 
@@ -85,7 +89,7 @@ class Layaway(models.Model):
             branch = self.branch.slug,
             client = self.client.as_json(),
             products = [{'product': p.prod.as_json(),
-                         'qty': p.qty} for p in self.layawayproduct_set.all()],
+                         'qty': p.qty, 'price': str(p.price)} for p in self.layawayproduct_set.all()],
             user = self.user.username,
             date_time = dt.strftime('%d/%m/%y %H:%M:%S'),
             amount_to_pay = "${0:.2f}=".format(self.amount_to_pay),
@@ -104,6 +108,7 @@ class LayawayProduct(models.Model):
     prod = models.ForeignKey('products.Product')
     qty = models.PositiveIntegerField(_("Quantity"), default = 0)
     layaway = models.ForeignKey(Layaway)
+    price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2, default=(Decimal(0.0)))
 
 class LayawayHistoryManager(models.Manager):
     def get_payments_json(self, branch, datestart, dateend):

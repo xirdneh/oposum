@@ -51,7 +51,6 @@ def save_layaway(request):
             logger.debug("LT: {0}".format(layaway_type))
             client = Client.objects.get(id = client_id)
             if Layaway.objects.can_add_more(client):
-                logger.debug("Client can get a layaway")
                 layaway =  Layaway(branch = b,
                                   client = client,
                                   user = request.user,
@@ -63,7 +62,7 @@ def save_layaway(request):
                         try:
                             lp = LayawayProduct.objects.get(prod = p, layaway = layaway)
                         except LayawayProduct.DoesNotExist:
-                            lp = LayawayProduct(prod = p, layaway=layaway)
+                            lp = LayawayProduct(prod = p, layaway=layaway, price=Decimal(product['retail_price']))
                         lp.qty += int(product['qty'])
                         lp.save()
                         if b.slug in allowed['allowed']:
