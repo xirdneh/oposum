@@ -180,12 +180,12 @@ $mrs.click(function(e){
                 }
                 if (d.payments && d.payments.length > 0){
                     tb += "\n\r\n\r\n\r *********** Separados / Abonos ***********";
-                    tb += "\n\r" + d.payments[0].date_time.split(" ")[0] + "\n\r";
+                    tb += "\n\r" + d.payments[0].layaway.date_time.split(" ")[0] + "\n\r";
                     tb += "Folio \t Total \t Metodo\n\r";
                     for (var i = 0; i < d.payments.length; i++){
                         var $payment = d.payments[i];
                         var $layaway = $payment.layaway;
-                        tb += $payment.id + "\t" + $payment.amount + "\t" + $payment.type + "\n\r";
+                        tb += $payment.payment.id + "\t" + $payment.payment.amount + "\t" + $payment.payment.type + "\n\r";
                         tb += "\t" + $layaway.id + "   " + $layaway.client.first_name + " " + $layaway.client.last_name + "   " + $layaway.total_debt_amount;
                         if($layaway.products.length > 0){
                             for(var j = 0; j < $layaway.products.length; j++){
@@ -193,11 +193,11 @@ $mrs.click(function(e){
                             tb += "\n\r\t\t" + $p.product.name + "  " +  $p.product.retail_price + "   " + $p.qty;
                             }
                         }
-                        $total += parseFloat($payment.amount);
-                        if(!$totales[$payment.type]){
-                            $totales[$payment.type] = parseFloat($payment.amount);
+                        $total += parseFloat($payment.payment.amount.replace(/[$=]/g, ""));
+                        if(!$totales[$payment.payment.payment_type]){
+                            $totales[$payment.payment.payment_type] = parseFloat($payment.payment.amount.replace(/[$=]/g, ""));
                         }else{
-                            $totales[$payment.type] += parseFloat($payment.amount);
+                            $totales[$payment.payment.payment_type] += parseFloat($payment.payment.amount.replace(/[$=]/g, ""));
                         }
                     }
                 }

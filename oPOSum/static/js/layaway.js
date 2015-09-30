@@ -33,10 +33,11 @@ if(add_layway_btn){
                 "<label for=\"layaway-payment-type\">Tipo de Pago</label>" +
                 "<select name=\"layaway-payment-type\" id=\"layaway-payment-type\">" +
                     "<option name=\"cash\" value=\"Cash\">Efectivo</option>"  +
-                    "<option name=\"credit\" value=\"Credit\">Credito</option>" + 
+                    "<option name=\"credit\" value=\"Credit\">Débito/Credito</option>" + 
                     "<option name=\"cheque\" value=\"Check\">Cheque</option>" + 
-                    "<option name=\"vale\" value=\"Vale\">Vale</option>" + 
-                "</select><br />" + 
+                    "<option name=\"layaway voucher\" value=\"Layaway Voucher\">Vale Separado</option>" + 
+                    "<option name=\"sale voucher\" value=\"Sale Voucher\">Vale Venta</option>" +
+                "</select><br />" +
                 "<label for=\"layaway-payment\">Monto a Pagar:</label>" +
                 "<input class='form-control' name='layaway-payment' id='layaway-payment' type='number' step='0.1'/>" +
                 "<label for=\"layaway-pay\">Pago:</label>" +
@@ -453,7 +454,8 @@ if(add_payment){
                     "<option name=\"cash\" value=\"Cash\">Efectivo</option>"  +
                     "<option name=\"credit\" value=\"Credit\">Credito</option>" + 
                     "<option name=\"cheque\" value=\"Check\">Cheque</option>" + 
-                    "<option name=\"vale\" value=\"Vale\">Vale</option>" + 
+                    "<option name=\"layaway voucher\" value=\"Layaway Voucher\">Vale Separado</option>" + 
+                    "<option name=\"sale voucher\" value=\"Sale Voucher\">Vale Venta</option>" + 
                 "</select><br />" + 
                 "<label for=\"layaway-payment\">Monto a Pagar:</label>" +
                 "<input class='form-control' name='layaway-payment' id='layaway-payment' type='number' step='0.1'/>" +
