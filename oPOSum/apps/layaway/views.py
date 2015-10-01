@@ -95,7 +95,7 @@ def save_layaway(request):
             error = True
             msg.append("LayawayUserBranchAccessError")
         if error:
-            return HttpResponse("{ \"status\": \"error\", \"message\": " + json.dumps(msg) + "}", content_type = "application/json")
+            return HttpResponse("{ \"status\": \"error\", \"message\": " + json.dumps(msg, encoding="latin-1") + "}", content_type = "application/json")
         else:
             return HttpResponse("""{{ \"status\": \"ok\", 
                                      \"message\": {0},
@@ -103,7 +103,7 @@ def save_layaway(request):
                                      \"payment\": {2},
                                      \"branch\" : {3}
                                 }}""".format(json.dumps(msg), 
-                                             json.dumps(layaway.as_json()),
+                                             json.dumps(layaway.as_json(), encoding="latin-1"),
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
     return render_to_response('/layaway/index.html', context_instance=RequestContext(request))
@@ -144,7 +144,7 @@ def save_payment(request):
                                      \"payment\": {2},
                                      \"branch\" : {3}
                                 }}""".format(json.dumps(msg), 
-                                             json.dumps(layaway.as_json()),
+                                             json.dumps(layaway.as_json(), encoding="latin-1"),
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
     return render_to_response('/layaway/index.html', context_instance=RequestContext(request))

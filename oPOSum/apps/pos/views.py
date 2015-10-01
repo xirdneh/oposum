@@ -101,7 +101,7 @@ def get_sales_report(request, branch, urldatetime):
         from oPOSum.apps.layaway.models import LayawayHistory
         payments = LayawayHistory.objects.get_payments_json(branch, start_date, end_date)
         ret['payments'] = payments
-    return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret) + "}", content_type="application/json")
+    return HttpResponse("{\"response\": \"OK\", \"data\":" + json.dumps(ret, encoding="latin-1") + "}", content_type="application/json")
 
 def get_sales_report_branch(request, branch, datestart, dateend=None):
     tz = pytz.timezone('America/Monterrey')
