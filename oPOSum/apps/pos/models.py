@@ -76,7 +76,8 @@ class Sale(models.Model):
             payment_amount = str(self.payment_amount),
             folio_number = self.folio_number,
             ticket_pre = self.branch.ticket_pre.encode('unicode_escape'),
-            ticket_post = self.branch.ticket_post.encode('unicode_escape')
+            ticket_post = self.branch.ticket_post.encode('unicode_escape'),
+            sale_details = [sd.as_json() for sd in self.saledetails_set.all()]
             )
 
 class SaleDetails(models.Model):
@@ -87,6 +88,13 @@ class SaleDetails(models.Model):
 
     def __unicode__(self):
         return "%s: %f" % (self.sale, self.over_price)
+
+    def as_json(self):
+        return dict(
+            product = self.product.as_json(),
+            quantity = str(self.quantity),
+            over_price = str(self.over_price)
+        )
 
 class POSFolio(models.Model):
     name = models.CharField(_("Name"), max_length=255)

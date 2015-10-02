@@ -44,18 +44,22 @@ def save_sale(request):
         total = Decimal("0.0")
         allowed_data = open("{0}/../libs/branches.json".format(settings.PROJECT_DIR))
         allowed = json.load(allowed_data)
+        if len(details) == 0:
+            return HttpResponse("{\"response\": \"error\", \"message\":\"Sale is empty\"}", content_type="application/json", status = 500)
+        else: 
+            s = Sale(branch = branch, user = user, total_amount = 0, folio_number = folio, payment_method = pt, payment_amount = pa)
+            s.save()
         for detail in details:
             total += Decimal(detail['qty']) * Decimal(detail['price'])
             try:
                 p = Product.objects.get(slug = detail['slug'])
-                sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']))
+                sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']), sale = s)
                 sd.save()
-                prods.append(sd)
             except Product.DoesNotExist:
                 pr = Provider.objects.get(sku = "00")
                 p = Product(name = detail['slug'], slug = detail['slug'].replace('-', ''), regular_price = Decimal(detail['price']), provider=pr)
                 p.save()
-                sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']))
+                sd = SaleDetails(product = p, quantity = int(detail['qty']), over_price = Decimal(detail['price']), sale = s)
                 sd.save()
                 prods.append(sd)
             try:
@@ -66,14 +70,14 @@ def save_sale(request):
                     pe.save()
             except:
                 log_sales.error("Error while substracting existance branch {0} - {1}:\n{2}\n".format(branch, detail['slug'], traceback.format_exc())) 
-
-        s = Sale(branch = branch, user = user, total_amount = total, folio_number = folio, payment_method = pt, payment_amount = pa)
+        #s = Sale(branch = branch, user = user, total_amount = total, folio_number = folio, payment_method = pt, payment_amount = pa)
+        #s.save()
+        #for sd in prods:
+        #    sd.sale = s
+        #    sd.save()
+        s.total_amount = total
         s.save()
-        for sd in prods:
-            sd.sale = s
-            sd.save()
- 
-    return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\"}", mimetype="application/json")
+    return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\", \"sale\": " + json.dumps(s.as_json(), encoding="latin-1") + "}", mimetype="application/json")
 
 def get_sales_report(request, branch, urldatetime):
     tz = pytz.timezone('America/Monterrey')

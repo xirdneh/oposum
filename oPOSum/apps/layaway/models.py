@@ -136,6 +136,6 @@ class LayawayHistory(models.Model):
             branch = self.branch.slug,
             user = self.user.username,
             amount = "${0:.2f}=".format(self.amount),
-            date_time = dt.strftime('%d/%m/%y %H:%M:%S'),
+            date_time = dt.strftime('%d/%m/%Y %H:%M:%S'),
             payment_type = self.payment_type
         )
