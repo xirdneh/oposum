@@ -4,6 +4,7 @@ from django.db.models import Q
 from oPOSum.apps.products.forms import *
 from oPOSum.apps.products.models import *
 from oPOSum.libs import utils as pos_utils
+from oPOSum.libs import products as prod_utils
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 import json
@@ -129,6 +130,10 @@ def get_product(request, slug):
             retail_price = p.equivalency * p.line.price
         else:
             retail_price = p.regular_price
+        desc = prod_utils.get_discounts(p)
+        des = {'desc': '0'}
+        if desc is not None and desc:
+            des = {'discount': desc.slug[-2:] }
         ret = {
             'status':'ok',
             'message': 'Existente',
@@ -138,7 +143,8 @@ def get_product(request, slug):
                     'price':str(p.regular_price), 
                     'description':p.description,
                     'retail_price':str(round(retail_price,2))
-                }
+                },
+            'desc': des
         }
         logger.debug("Producto conocido: {0}".format(p))
     except Product.DoesNotExist:
@@ -146,6 +152,7 @@ def get_product(request, slug):
         if len(p) > 0 :
             p = migrate.get_migration_details( p[0][15], p[0][1] ) 
             logger.debug("Producto desconocido: {0}".format(p))
+            logger.error("Producto desconocido: {0}".format(p))
             ret = {
                 'status':'ok',
                 'message': 'Migrando',
@@ -153,6 +160,7 @@ def get_product(request, slug):
                 }
         else:
             logger.debug("Producto no encontrado")
+            logger.error("Producto no encontrado")
             ret = {}
             ret['status'] = 'error'
             ret['message'] = 'Producto no encontrado'

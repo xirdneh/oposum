@@ -20,6 +20,9 @@ $pi.blur(function() {
                 $("#product_qty").prop('disabled', false);
                 $("#product_price").prop('disabled', false);
                 $("#product_code").prop('disabled', false);
+                if (data.desc.discount !== "0"){
+                    $("#product_desc").val(data.desc.discount);
+                }
                 $("#product_price").focus();
             }
             else if (data.status == "ok" && data.message == "Migrando"){
@@ -125,6 +128,13 @@ var $pp = $("#product_price").keyup(function(e){
         $prod.qty = $("#product_qty").val();
         $data.push({'id': $id, 'slug': $prod.slug, 'desc': $prod.description,
         'price': $("#product_price").val(), 'qty': $prod.qty});
+        dataView.setItems($data);
+        $desc = $("#product_desc").val();
+        if($desc != "0"){
+            $id++;
+            $data.push({'id': $id, 'slug': 'NOVDESC' + $desc, 'desc': 'DESCUENTO ' + $desc + '% NOVIEMBRE',
+            'price': -1 * (+$("#product_price").val() * (+$desc / 100)), 'qty': 1});
+        }
         dataView.setItems($data);
         $("#product_code").val("");
         $("#product_code").focus();

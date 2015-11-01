@@ -4,6 +4,8 @@ import sys
 import MySQLdb as mdb
 import logging
 from decimal import Decimal
+import pytz
+from datetime import datetime
 logger = logging.getLogger(__name__)
 
 def verify_product(prod):
@@ -127,3 +129,20 @@ def check_product(prod):
     product['equivalency'] = prod['equivalency']
     product['regular_price'] = prod['price']
     return product
+
+def get_discounts(p):
+    utc = pytz.timezone('UTC')
+    dtu = datetime.utcnow()
+    dt = dtu.replace(tzinfo = utc)
+    tz = pytz.timezone('America/Monterrey')
+    dt = dt.astimezone(tz)
+
+    if( datetime(2015, 11, 1, 0, 0, 0, 0, tz) <= dt and
+        datetime(2015, 11, 30, 23, 59, 0, 0, tz) >= dt ):
+
+        if p.provider.sku == '81' or p.provider.sku == '91':
+            desc = Product.objects.get(slug = 'NOVDESC50')
+        elif p.provider.sku == 'HO' or p.provider.sku == 'SP':
+            desc = Product.objects.get(slug = 'NOVDESC15')
+        return desc
+    return False            
