@@ -131,9 +131,12 @@ def get_product(request, slug):
         else:
             retail_price = p.regular_price
         desc = prod_utils.get_discounts(p)
-        des = {'desc': '0'}
-        if desc is not None and desc:
-            des = {'discount': desc.slug[-2:] }
+        des = {'discount': '0'}
+        if desc is not None and desc and desc:
+            try:
+                des = {'discount': desc.slug[-2:] }
+            except:
+                des = {'discount': '0'}
         ret = {
             'status':'ok',
             'message': 'Existente',

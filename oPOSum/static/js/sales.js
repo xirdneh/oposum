@@ -22,6 +22,8 @@ $pi.blur(function() {
                 $("#product_code").prop('disabled', false);
                 if (data.desc.discount !== "0"){
                     $("#product_desc").val(data.desc.discount);
+                }else{
+                    $("#product_desc").val("0"); 
                 }
                 $("#product_price").focus();
             }

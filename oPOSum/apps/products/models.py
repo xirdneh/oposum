@@ -94,6 +94,9 @@ class Product(models.Model):
         if(self.line):
             ret['line'] = self.line.name
         return ret
+    def has_category(self, ctype, cslug):
+        cats = self.category.all().filter(slug = cslug, type = ctype)
+        return len(cats) > 0
 
     def get_retail_price(self):
         retail_price = Decimal(0.0)

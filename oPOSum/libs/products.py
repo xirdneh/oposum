@@ -136,11 +136,11 @@ def get_discounts(p):
     dt = dtu.replace(tzinfo = utc)
     tz = pytz.timezone('America/Monterrey')
     dt = dt.astimezone(tz)
-
+    desc = False
     if( datetime(2015, 11, 1, 0, 0, 0, 0, tz) <= dt and
         datetime(2015, 11, 30, 23, 59, 0, 0, tz) >= dt ):
 
-        if p.provider.sku == '81' or p.provider.sku == '91':
+        if (p.provider.sku == '81' or p.provider.sku == '91') and (p.has_category('bodega', '1') or p.has_category('bodega', '2')):
             desc = Product.objects.get(slug = 'NOVDESC50')
         elif p.provider.sku == 'HO' or p.provider.sku == 'SP':
             desc = Product.objects.get(slug = 'NOVDESC15')
