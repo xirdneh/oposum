@@ -135,7 +135,8 @@ var $pp = $("#product_price").keyup(function(e){
         if($desc != "0"){
             $id++;
             $data.push({'id': $id, 'slug': 'NOVDESC' + $desc, 'desc': 'DESCUENTO ' + $desc + '% NOVIEMBRE',
-            'price': -1 * (+$("#product_price").val() * (+$desc / 100)), 'qty': 1});
+            'price': $prod.qty * (-1 * (+$("#product_price").val() * (+$desc / 100))), 'qty': 1}
+            );
         }
         dataView.setItems($data);
         $("#product_code").val("");
