@@ -142,9 +142,13 @@ def get_discounts(p):
 
         if (p.provider.sku == '81' or p.provider.sku == '91') and (p.has_category('bodega', '1') or p.has_category('bodega', '2')):
             desc = Product.objects.get(slug = 'NOVDESC50')
+        elif p.provider.sku == 'BE':
+            desc = Product.objects.get(slug = 'NOVDESC50')
+        elif p.provider.sku == 'HW':
+            desc = Product.objects.get(slug = 'NOVDESC30')
         elif p.provider.sku == 'HO' or p.provider.sku == 'SP':
             desc = Product.objects.get(slug = 'NOVDESC15')
         elif p.provider.sku == 'DR':
             desc = Product.objects.get(slug = 'NOVDESC70')
         return desc
-    return False            
+    return False  
