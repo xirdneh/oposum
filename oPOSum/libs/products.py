@@ -146,6 +146,8 @@ def get_discounts(p):
             desc = Product.objects.get(slug = 'NOVDESC50')
         elif p.provider.sku == 'HW':
             desc = Product.objects.get(slug = 'NOVDESC30')
+        elif p.provider.sku == '23' and p.category.slug == '17':
+            desc = Product.objects.get(slug = 'NOVDESC30')
         elif p.provider.sku == 'HO' or p.provider.sku == 'SP':
             desc = Product.objects.get(slug = 'NOVDESC15')
         elif p.provider.sku == 'DR':
