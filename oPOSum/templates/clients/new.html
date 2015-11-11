@@ -225,6 +225,7 @@
 {% addtoblock "js" %}
     <script src="{{STATIC_URL}}js/layaway.js" type="text/javascript"></script>
 {% endaddtoblock %}
+{% addtoblock "js" %}
 <script type="text/javascript">
     function deployQZ() {
 		var attributes = {id: "qz", code:'qz.PrintApplet.class', 
@@ -305,12 +306,13 @@
         function(){balco.isLocalServerRunning = true;}
         )
     .catch(function(){
-        deployQZ();
-        findPrinter('zebra');
+        balco.isLocalServerRunning = false;
+        //deployQZ();
+        //findPrinter('zebra');
         });
 //End Promise
 </script>
-
+{% endaddtoblock %}
 
 
 {% endblock %}

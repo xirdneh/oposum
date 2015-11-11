@@ -370,22 +370,24 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        tb += chr(27) + chr(105);
-        tb += "\x1B\x69";
+        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
-        if(console){
-            console.log(tb);
-        }
-        try{
-            qz.append(tb);
-            qz.print();
-        } catch(e){
-            if(console){
-                console.log("No Printer");
+
+        if(!balco.debug){ 
+            if(!balco.isLocalServerRunning){
+                qz.append(tb);
+                qz.print();
+            }else{
+                balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
             }
-        }
+        }else{
+                if(console){
+                    console.log(tb);
+                }
+            }
+        
         tb = "";
         tb += data.branch.ticket_pre;
         tb += "\n\r";
@@ -414,20 +416,22 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        tb += chr(27) + chr(105);
-        tb += "\x1B\x69";
+        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
-        if(console){
-            console.log(tb);
-        }
-        try{
-            qz.append(tb);
-            qz.print();
-        }catch(e){
-            console.log("No Printer");
-        }
+        if(!balco.debug){ 
+            if(!balco.isLocalServerRunning){
+                qz.append(tb);
+                qz.print();
+            }else{
+                balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+            }
+        }else{
+                if(console){
+                    console.log(tb);
+                }
+
         $("#mensaje button").prop('disabled', false);
         window.location = '/clients/new/' + layaway.client.id;
     }
@@ -620,22 +624,22 @@ function print_payment_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        tb += chr(27) + chr(105);
-        tb += "\x1B\x69";
+        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
-        if(console){
-            console.log(tb);
+        if(!balco.debug){
+            if(!balco.isLocalServerRunning){
+                qz.append(tb);
+                qz.print();
+            }else{
+                balco.sendToPrinter(tb.replace('/[\n\r]/g', '{{LF}} {{CR}}').replace('/[\t]/g', ' {{TAB}} '));
+            }
+        }else{
+            if(console){
+                console.log(tb);
+            }
         }
-        try{
-            qz.append(tb);
-            qz.print();
-        }catch(e){
-            console.log("No Printer");
-        }
-
-        
         if(layaway.total_debt_amount == "$0.00="){
             tb = "";
             tmptb = "";
@@ -673,20 +677,21 @@ function print_payment_ticket(data){
             tb += "\n\r";
             tb += "\n\r";
             tb += "\n\r";
-            tb += chr(27) + chr(105);
-            tb += "\x1B\x69";
             tmptb = tb;
+            if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
             tb += "\n\r\t**********COPIA**********\t\n\r";
             tb += tmptb;
-            if(console){
-                console.log(tb);
-            }
-            try{
-                qz.append(tb);
-                qz.print();
-            }catch(e){
-                console.log("No Printer");
-            }
+            if(!balco.debug){ 
+                if(!balco.isLocalServerRunning){
+                    qz.append(tb);
+                    qz.print();
+                }else{
+                    balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+                }
+            }else{
+                if(console){
+                    console.log(tb);
+                }
         }
 
         $("#mensaje button").prop('disabled', false);

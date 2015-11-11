@@ -154,8 +154,22 @@
 {% addtoblock "js" %}
     <script type="text/javascript" src="{{STATIC_URL}}js/sales.js?v=2.1"></script>
 {% endaddtoblock %}
+{% addtoblock "js" %}
 <script type="text/javascript" src="{{STATIC_URL}}js/deployJava.js"></script>
 <script type="text/javascript">
+/// Promise
+
+    var isr = new Promise(balco.checkLocalServerRunning);
+    isr.then(
+        function(){balco.isLocalServerRunning = true;}
+        )
+    .catch(function(){
+        balco.isLocalServerRunning = false;
+        //deployQZ();
+        //findPrinter('zebra');
+        });
+//End Promise
+
     function deployQZ() {
 		var attributes = {id: "qz", code:'qz.PrintApplet.class', 
 			archive:'/static/qz-print.jar', width:1, height:1};
@@ -229,16 +243,9 @@
 	function chr(i) {
 		return String.fromCharCode(i);
 	}
-/// Promise
-    var isr = new Promise(balco.checkLocalServerRunning);
-    isr.then(
-        function(){balco.isLocalServerRunning = true;}
-        )
-    .catch(function(){
-        deployQZ();
-        findPrinter('zebra');
-        });
-//End Promise
+
+
 </script>
+{% endaddtoblock %}
 
 {% endblock %}

@@ -25,14 +25,15 @@ class LocalData(object):
     records = {}
 
 class LocalUtil(object):
-    const = {
-        '{{LF}}': '\x0a',
-        '{{CR}}': '\x0d',
-        '{{TAB}}': '\t',
-        '{{PAPERCUT}}': '\x1d\x56\x01',
-        '{{BOLDOFF}}': '\x1b\x45\x00',
-        '{{BOLDON}}': '\x1b\x45\x01',
-    }
+    def __init__(self):
+        self.const = {
+            '{{LF}}': '\x0a',
+            '{{CR}}': '\x0d',
+            '{{TAB}}': '\t',
+            '{{PAPERCUT}}': '\x1d\x56\x01',
+            '{{BOLDOFF}}': '\x1b\x45\x00',
+            '{{BOLDON}}': '\x1b\x45\x01',
+        }
     def get_printers(self):
         printers = win32print.EnumPrinters(2)
         return printers
@@ -47,11 +48,11 @@ class LocalUtil(object):
     def send_to_zebra(self, printer, data):
         p = win32print.OpenPrinter(printer[2])
         job = win32print.StartDocPrinter(p, 1, ('oposm ticket', None, "RAW"))
-        for word in data.split(' '):
-            if word in const:
-                win32print.WritePrinter(p, const[word])
+        for word in data.split():
+            if word in self.const:
+                win32print.WritePrinter(p, self.const[word])
             else:
-                win32print.WritePrinter(p, word)
+                win32print.WritePrinter(p + ' ', word)
         win32print.EndDocPrinter(p)
         win32print.ClosePrinter(p)
         return
