@@ -156,7 +156,6 @@
 {% endaddtoblock %}
 <script type="text/javascript" src="{{STATIC_URL}}js/deployJava.js"></script>
 <script type="text/javascript">
-    deployQZ();
     function deployQZ() {
 		var attributes = {id: "qz", code:'qz.PrintApplet.class', 
 			archive:'/static/qz-print.jar', width:1, height:1};
@@ -170,7 +169,6 @@
 		}
 		deployJava.runApplet(attributes, parameters, '1.5');
 	}
-
     function qzReady(){
         window["qz"] = document.getElementById('qz');
     }
@@ -231,7 +229,16 @@
 	function chr(i) {
 		return String.fromCharCode(i);
 	}
-    findPrinter('zebra');
+/// Promise
+    var isr = new Promise(balco.checkLocalServerRunning);
+    isr.then(
+        function(){balco.isLocalServerRunning = true;}
+        )
+    .catch(function(){
+        deployQZ();
+        findPrinter('zebra');
+        });
+//End Promise
 </script>
 
 {% endblock %}

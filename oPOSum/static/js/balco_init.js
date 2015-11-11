@@ -72,6 +72,34 @@ if (typeof balco == 'undefined'){
             }
         });
    };
+
+   balco.checkLocalServerRunning = function(resolve, reject){
+       $.ajax({
+           url:"http://localhost:9099/api/v1/get-printers",
+           success: function(data){
+               console.log('Local server running: ', data);
+               resolve(true);
+           },
+           error: function(err){
+               console.log('Local server is not running: ', err);
+               reject(false);
+           }
+       });
+   };
+
+   balco.sendToPrinter = function(tb){
+       $.ajax({
+           url:"http://localhost:9099/api/v1/print",
+           method:"POST",
+           data:tb,
+           success: function(data){
+               console.log("success: ", data);
+           },
+           error: function(err){
+               console.log("error: ", err);
+           }
+       });
+   };
 }
 (function($){
     $(".navbar .search-box form").submit(balco.search);

@@ -166,19 +166,32 @@ $mrs.click(function(e){
             if(balco.debug){
                 print = true;
             }
-            else{
+            else if(balco.isLocalServerRunning){
+                print = true;
+            }else{
                 print = !notReady();
             }
             if (print) {
                 var tb = "";
-                tb += "\t============= Reporte del Dia =============";
-                tb += "\n\r" + $branch + "\n\r";
+                if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                tb += "============= Reporte del Dia =============";
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                tb += $branch;
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
                 var $total = 0;
                 var $totales = {};
                 if (d.sales.length > 0){
-                    tb += "\n\r *********** Ventas ***********";
-                    tb += "\n\r" + d.sales[0].date_time.split(" ")[0] + "\n\r";
-                    tb += "Folio \t  Total \t Metodo\n\r";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += "*********** Ventas ***********";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += d.sales[0].date_time.split(" ")[0];
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += "Folio";
+                    if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                    tb += "Total";
+                    if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                    tb += "Metodo";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
                     for (var i = 0; i < d.sales.length; i++){
                         var $sale = d.sales[i];
                         tb += $sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method + "\n\r";
@@ -192,18 +205,32 @@ $mrs.click(function(e){
                     }
                 }
                 if (d.payments && d.payments.length > 0){
-                    tb += "\n\r\n\r\n\r *********** Separados / Abonos ***********";
-                    tb += "\n\r" + d.payments[0].layaway.date_time.split(" ")[0] + "\n\r";
-                    tb += "Folio \t Total \t Metodo\n\r";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += "*********** Separados / Abonos ***********";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += d.payments[0].layaway.date_time.split(" ")[0];
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                    tb += "Folio";
+                    if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                    tb += "Total";
+                    if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                    tb += "Metodo";
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
                     for (var i = 0; i < d.payments.length; i++){
                         var $payment = d.payments[i];
                         var $layaway = $payment.layaway;
                         tb += $payment.payment.id + "\t" + $payment.payment.amount + "\t" + $payment.payment.type + "\n\r";
                         tb += "\t" + $layaway.id + "   " + $layaway.client.first_name + " " + $layaway.client.last_name + "   " + $layaway.total_debt_amount;
+                        if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
                         if($layaway.products.length > 0){
                             for(var j = 0; j < $layaway.products.length; j++){
                             var $p = $layaway.products[j];
-                            tb += "\n\r\t\t" + $p.product.name + "  " +  $p.product.retail_price + "   " + $p.qty;
+                            if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                            if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                            if(balco.isLocalServerRunning){tb += "{{TAB}}";}else{tb+= "\t";}
+                            tb += $p.product.name + "  " +  $p.product.retail_price + "   " + $p.qty;
                             }
                         }
                         $total += parseFloat($payment.payment.amount.replace(/[$=]/g, ""));
@@ -215,15 +242,28 @@ $mrs.click(function(e){
                     }
                 }
                 for(var t in $totales){
-                    tb += "Total en " + t + " : " + $totales[t] + " \n\r";
+                    tb += "Total en " + t + " : " + $totales[t];
+                    if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
                 }
-                tb += "Total del dia: " + $total + "\n\r";
-                tb += "\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r";
-                tb += chr(27) + chr(105);
-                tb += "\x1B\x69";
-                if(!balco.debug){    
-                    qz.append(tb);
-                    qz.print();
+                tb += "Total del dia: " + $total;
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{LF}}{{CR}}";}else{tb+= "\n\r";}
+                if(balco.isLocalServerRunning){tb += "{{PAPERCUT}}";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+                if(!balco.debug){ 
+                    if(!balco.isLocalServerRunning){
+                        qz.append(tb);
+                        qz.print();
+                    }else{
+                        balco.sendToPrinter(tb);
+                    }
                 }else{
                     if(console){
                         console.log(tb);
