@@ -80,7 +80,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(res)
+                self.wfile.write('jsonp(' + res + ')')
 
             else:
                 data = {}
@@ -97,7 +97,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write('{"printers": ["printer1", "printer2"]}')
+            self.wfile.write('jsonp({"printers": ["printer1", "printer2"]})')
         else:
             self.send_response(403)
             self.send_header('Content-Type', 'application/json')
