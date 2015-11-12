@@ -435,7 +435,9 @@ function print_layaway_ticket(data){
         }
 
         $("#mensaje button").prop('disabled', false);
+        setTimeout(function(){
         window.location = '/clients/new/' + layaway.client.id;
+        }, 500);
     }
 }
 
@@ -699,7 +701,9 @@ function print_payment_ticket(data){
         }
 
         $("#mensaje button").prop('disabled', false);
+        setTimeout(function(){
         window.location = '/clients/new/' + layaway.client.id;
+        }, 500);
     }
 }
 
