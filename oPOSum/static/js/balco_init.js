@@ -76,9 +76,6 @@ if (typeof balco == 'undefined'){
    balco.checkLocalServerRunning = function(resolve, reject){
        $.ajax({
            url:"http://localhost:9099/api/v1/get-printers",
-           crossDomain, true,
-           dataType: 'jsonp',
-           jsonpCallback: 'jsonp',
            success: function(data){
                console.log('Local server running: ', data);
                resolve(true);
@@ -88,19 +85,13 @@ if (typeof balco == 'undefined'){
                reject(false);
            }
        });
-       function jsonp(data){
-           console.log(data);
-       };
    };
 
    balco.sendToPrinter = function(tb){
        $.ajax({
            url:"http://localhost:9099/api/v1/print",
-           crossDomain: true,
-           method:"POST",
+           method: 'POST',
            data:tb,
-           dataType: 'jsonp',
-           jsonpCallback: 'jsonp',
            success: function(data){
                console.log("success: ", data);
            },
@@ -108,9 +99,6 @@ if (typeof balco == 'undefined'){
                console.log("error: ", err);
            }
        });
-       function jsonp(data){
-           console.log(data);
-       }
    };
 }
 (function($){

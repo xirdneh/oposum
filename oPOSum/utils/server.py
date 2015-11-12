@@ -52,7 +52,7 @@ class LocalUtil(object):
             if word in self.const:
                 win32print.WritePrinter(p, self.const[word])
             else:
-                win32print.WritePrinter(p + ' ', word)
+                win32print.WritePrinter(p, word + ' ')
         win32print.EndDocPrinter(p)
         win32print.ClosePrinter(p)
         return
@@ -63,29 +63,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         res = "";
         if None != re.search('/api/v1/print', self.path):
             ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-            if ctype == 'application/json':
-                length = int(self.headers.getheader('content-length'))
-                try:
-                    data = self.rfile.read(length)
-                    lu = LocalUtil()
-                    printer = lu.get_zebra_printer()
-                    #data = json.loads(data)
-                    #data['data'] = data['data'].encode('utf-8').decode('latin-1')
-                    lu.send_to_zebra(printer, data)
-                    res = '{"status": 200, "message": "ok"}'
-                    self.send_response(200)
-                except:
-                    logger.error('error : \n{0}'.format(traceback.format_exc()));
-                    res = '{"status": 500, "message": "' + traceback.format_exc() + '"}'
-                    self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write('jsonp(' + res + ')')
-
-            else:
-                data = {}
+            length = int(self.headers.getheader('content-length'))
+            try:
+                data = self.rfile.read(length)
+                lu = LocalUtil()
+                printer = lu.get_zebra_printer()
+                #data = json.loads(data)
+                #data['data'] = data['data'].encode('utf-8').decode('latin-1')
+                lu.send_to_zebra(printer, data)
+                res = '{"status": 200, "message": "ok"}'
                 self.send_response(200)
-                self.end_headers()
+            except:
+                logger.error('error : \n{0}'.format(traceback.format_exc()));
+                res = '{"status": 500, "message": "' + traceback.format_exc() + '"}'
+                self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write('jsonp(' + res + ')')
         else:
             self.send_response(403)
             self.send_header('Content-Type', 'application/json')
@@ -96,11 +91,13 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         if None != re.search('/api/v1/get-printers', self.path):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write('jsonp({"printers": ["printer1", "printer2"]})')
         else:
             self.send_response(403)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
         return
 

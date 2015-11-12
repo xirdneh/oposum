@@ -370,7 +370,7 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+        if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
@@ -380,7 +380,7 @@ function print_layaway_ticket(data){
                 qz.append(tb);
                 qz.print();
             }else{
-                balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+                balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
             }
         }else{
                 if(console){
@@ -416,7 +416,7 @@ function print_layaway_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+        if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
@@ -425,12 +425,13 @@ function print_layaway_ticket(data){
                 qz.append(tb);
                 qz.print();
             }else{
-                balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+                balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
             }
         }else{
                 if(console){
                     console.log(tb);
                 }
+        }
 
         $("#mensaje button").prop('disabled', false);
         window.location = '/clients/new/' + layaway.client.id;
@@ -624,7 +625,7 @@ function print_payment_ticket(data){
         tb += "\n\r";
         tb += "\n\r";
         tb += "\n\r";
-        if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+        if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
         tmptb = tb;
         tb += "\n\r\t**********COPIA**********\t\n\r";
         tb += tmptb;
@@ -633,7 +634,7 @@ function print_payment_ticket(data){
                 qz.append(tb);
                 qz.print();
             }else{
-                balco.sendToPrinter(tb.replace('/[\n\r]/g', '{{LF}} {{CR}}').replace('/[\t]/g', ' {{TAB}} '));
+                balco.sendToPrinter(tb.replace(/[\n\r]/g, '{{LF}} {{CR}}').replace(/[\t]/g, ' {{TAB}} '));
             }
         }else{
             if(console){
@@ -678,7 +679,7 @@ function print_payment_ticket(data){
             tb += "\n\r";
             tb += "\n\r";
             tmptb = tb;
-            if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+            if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
             tb += "\n\r\t**********COPIA**********\t\n\r";
             tb += tmptb;
             if(!balco.debug){ 
@@ -686,12 +687,13 @@ function print_payment_ticket(data){
                     qz.append(tb);
                     qz.print();
                 }else{
-                    balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+                    balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
                 }
             }else{
                 if(console){
                     console.log(tb);
                 }
+            }
         }
 
         $("#mensaje button").prop('disabled', false);

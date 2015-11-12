@@ -438,7 +438,7 @@ $("#save_ticket").submit(function(e){
             tb += "\n\r";
             tb += "\n\r";
             tb += "\n\r";
-            if(balco.isLocalServerRunning){tb += " {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
+            if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
             /** COPIA 8*/
             tb += '\n\r\t***COPIA***\t\n\r' + tb;
             if(!balco.debug){ 
@@ -446,7 +446,7 @@ $("#save_ticket").submit(function(e){
                     qz.append(tb);
                     qz.print();
                 }else{
-                    balco.sendToPrinter(tb.replace('/[\n\r]/g', ' {{LF}} {{CR}} ').replace('/[\t]/g', ' {{TAB}} '));
+                    balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
                 }
             }else{
                     if(console){
