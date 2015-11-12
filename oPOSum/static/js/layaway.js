@@ -333,8 +333,9 @@ function print_layaway_ticket(data){
     var print = true;
     if(balco.debug){
         print = true;
-    }
-    else {
+    }else if(balco.isLocalServerRunning){
+        print = true;
+    }else {
         print = !notReady();
     }
     if(print){
@@ -593,8 +594,9 @@ function print_payment_ticket(data){
     var tmptb = "";
     if(balco.debug){
         print = true;
-    }
-    else {
+    }else if(balco.isLocalServerRunning){
+        print = true;
+    }else {
         print = !notReady();
     }
     if(print){
