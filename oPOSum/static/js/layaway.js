@@ -638,7 +638,7 @@ function print_payment_ticket(data){
                 qz.append(tb);
                 qz.print();
             }else{
-                balco.sendToPrinter(tb.replace(/[\n\r]/g, '{{LF}} {{CR}}').replace(/[\t]/g, ' {{TAB}} '));
+                balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
             }
         }else{
             if(console){
