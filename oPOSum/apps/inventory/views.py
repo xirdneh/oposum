@@ -86,10 +86,10 @@ def save_exits(request):
                 e = Existence.objects.get(branch = b, product = p)
                 if(isFine and e.product.get_branch_transactions_count(b) >= q):
                     existence.append((p, 'fine', q, e))
-                else:
-                    isFine = False
-                    if(e.product.get_branch_transactions_count(b) < q):
-                        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
+                #else:
+                #    isFine = False
+                #    if(e.product.get_branch_transactions_count(b) < q):
+                #        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
             except Existence.DoesNotExist:
                 isFine = False
                 existence_errors.append((p.name, 'exist', 0))
