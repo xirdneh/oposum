@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+    <h1> Crear Traspaso </h1>
+    <div class="traspasos-main-content">
+        <div id="user_branch"></div>
+        <div id="destiny_branch"></div>
+        <label for="product_code">Artículo</label>
+        <input type="text" name="product_code" id="product_code" class="form-control">
+        <table class="table table-stripped" id="transfer-prods">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Código</td>
+                    <td>Descripción</td>
+                    <td>Cantidad</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class='trasnfer-totals'></div>
+    </div>
+{% addtoblock "js"%}
+    <script type="text/javascript">
+        balco.user_branches = {{ request.session.user_branches|safe}};
+        balco.user_branches_selected = "{{ request.session.branch_selected}}";
+        balco.print_branches_selector("user_branch", balco.user_branches);
+        balco.select_init_branch("select_branches", balco.user_branches_selected);
+        balco.select_init_branch("destiny_branch",{{request.session.all_branches|safe}});
+    </script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script src="{{STATIC_URL}}js/transfers.js" type="text/javascript"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+    var isr = new Promise(balco.checkLocalServerRunning);
+    isr.then(
+        function(){balco.isLocalServerRunning = true;}
+        )
+    .catch(function(){
+        balco.isLocalServerRunning = false;
+        //deployQZ();
+        //findPrinter('zebra');
+        });
+    </script>
+{% endaddtoblock %}
+{% endblock %}

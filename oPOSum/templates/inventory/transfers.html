@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load sekizai_tags %}
+{% block main_content %}
+
+<h1>Traspasos</h1>
+<ul>
+    <li><a href="/inventory/transfers/{{request.session.branch_selected}}?create=true">Crear</a></li>
+    <li><a href="/inventory/transfers/{{request.session.branch_selected}}">Recibir</a></li>
+</ul>
+
+{% endblock main_content %}

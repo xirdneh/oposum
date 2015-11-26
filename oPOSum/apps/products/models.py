@@ -270,6 +270,7 @@ class Product(models.Model):
             totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
         ret['totals']['tot_branches'] = totales
         return ret
+
 '''
 class ProductStatus(models.Model):
     product = models.ForeignKey('products.Product')

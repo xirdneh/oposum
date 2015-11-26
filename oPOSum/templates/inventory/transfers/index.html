@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load sekizai_tags tz%}
+{% block main_content %}
+    <h1> Traspasos </h1>
+    {% if show_form %}
+    <div class="transfers-form-main-content">
+        <div id="user_branch"></div>
+        <div id="destiny_branch"></div>
+        <label for="product_code">Artículo</label>
+        <input type="text" name="product_code" id="product_code" class="form-control">
+        <table class="table table-striped" id="transfer-prods">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Código</td>
+                    <td>Descripción</td>
+                    <td>Cantidad</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <form name="transfer-save" id="transfer-save">
+            <button class="btn btn-success">Crear</button>
+        </form>
+        <div class='trasnfer-totals'></div>
+    </div>
+    {% endif %}
+    <br />
+    <div class='transfers-main-content'>
+        <table class="table table-striped" id="transfer-list">
+            <thead>
+                <tr>
+                    <td>Origen</td>
+                    <td>Destino</td>
+                    <td>Fecha</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+              {% if show_form %}
+                {% for t in trans_from %}
+                    <tr>
+                        <td> {{t.branch_from}}</td>
+                        <td> {{t.branch_to}}</td>
+                        <td> {{t.date_time}}</td>
+                    </tr>
+                {% endfor %}
+              {% else %}
+                {% for t in trans_to %}
+                    <tr>
+                        <td> {{t.branch_from}}</td>
+                        <td> {{t.branch_to}}</td>
+                        <td> {{t.date_time}}</td>
+                        <td>
+                            <form action="/inventory/transfers/accept-transfer/{{t.id}}" id="accept-transfer-{{t.id}}" name="accept-transfer-{{t.id}}" method = "post">
+                            {% csrf_token %}
+                            <button class="btn btn-success" type = "submit">Recibir</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% if show_form %}
+{% addtoblock "js"%}
+    <script type="text/javascript">
+        balco.user_branches = {{ request.session.user_branches|safe}};
+        balco.user_branches_selected = "{{ request.session.branch_selected}}";
+        balco.print_branches_selector("user_branch", balco.user_branches);
+        balco.print_branches_selector("destiny_branch", {{ request.session.all_branches|safe}});
+        balco.select_init_branch("select_branches", balco.user_branches_selected);
+        $('#destiny_branch').find('label').text('Destino:').attr('for', 'destiny_branch');
+        $('#destiny_branch').find('select').attr('name', 'destiny_branch').attr('id', 'destiny_branch_select');
+    </script>
+{% endaddtoblock %}
+{% endif %}
+{% addtoblock "js" %}
+    <script src="{{STATIC_URL}}js/transfers.js" type="text/javascript"></script>
+{% endaddtoblock %}
+{% addtoblock "js" %}
+    <script type="text/javascript">
+    var isr = new Promise(balco.checkLocalServerRunning);
+    isr.then(
+        function(){balco.isLocalServerRunning = true;}
+        )
+    .catch(function(){
+        balco.isLocalServerRunning = false;
+        //deployQZ();
+        //findPrinter('zebra');
+        });
+    </script>
+{% endaddtoblock %}
+{% endblock %}

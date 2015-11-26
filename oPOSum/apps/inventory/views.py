@@ -1,7 +1,7 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render, render_to_response, redirect
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from oPOSum.apps.inventory.models import Inventory, InventoryEntry, Existence, ExistenceHistory, ExistenceHistoryDetail, InventoryAdjustment
+from oPOSum.apps.inventory.models import *
 from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
@@ -9,6 +9,8 @@ from django.http import HttpResponse
 import json, sys, traceback, pytz
 from datetime import datetime
 from oPOSum.libs.reporter import PDFReporter
+from pytz import timezone
+import pytz
 # Create your views here.
 import logging
 
@@ -84,15 +86,20 @@ def save_exits(request):
             q = int(d['qty'])
             try:
                 e = Existence.objects.get(branch = b, product = p)
-                if(isFine and e.product.get_branch_transactions_count(b) >= q):
-                    existence.append((p, 'fine', q, e))
+                #if(isFine and e.product.get_branch_transactions_count(b) >= q):
+                existence.append((p, 'fine', q, e))
                 #else:
                 #    isFine = False
                 #    if(e.product.get_branch_transactions_count(b) < q):
                 #        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
             except Existence.DoesNotExist:
-                isFine = False
-                existence_errors.append((p.name, 'exist', 0))
+                entries = ExistenceHistory.object.fitler(product = p, 
+                                       branch = b, action = 'altas')
+                if len(entries) > 0:
+                    isFine = True
+                else:
+                    isFine = False
+                    existence_errors.append((p.name, 'exist', 0))
         if isFine:
             eh.save();
             for p in existence:
@@ -511,3 +518,84 @@ def print_inventory_missing(request):
         logger.error("No inventory found")
         logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
         return HttpResponse("Error", status=500)
+
+@login_required
+def transfers(request, branch = None):
+    if branch is None:
+        return render_to_response('inventory/transfers.html', context_instance=RequestContext(request))
+    if request.GET.get('create', False):
+        show_form = True
+    else:
+        show_form = False
+    branches = request.user.employee.get_branches_slugs()
+    if branch not in branches:
+        return HttpResponse("{}", status_code = 500);
+    tz = timezone('America/Monterrey')
+    b = Branch.objects.get(slug = branch)
+    tfrom = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_from = b).order_by('date_time')
+    trans_from = [{
+            'id': o.id,
+            'branch_from': o.branch_from,
+            'branch_to': o.branch_to,
+            'date_time': tz.normalize(o.date_time.astimezone(tz))
+            } for o in tfrom]
+    tto = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_to = b)
+    trans_to = [{
+            'id': o.id,
+            'branch_from': o.branch_from,
+            'branch_to': o.branch_to,
+            'date_time': tz.normalize(o.date_time.astimezone(tz))
+            } for o in tto]
+    return render_to_response('inventory/transfers/index.html', { 'branch': b, 'trans_from': trans_from, 'trans_to': trans_to, 'show_form': show_form}, context_instance=RequestContext(request))
+
+@login_required
+def save_transfer(request):
+    post_json = json.loads(request.POST['data'])
+    logger.debug('data: {0}'.format(post_json))
+    user = request.user
+    logger.debug('from {0}'.format(post_json['branch_from']))
+    logger.debug('to {0}'.format(post_json['branch_to']))
+    b_from = Branch.objects.get(slug = post_json['branch_from'])
+    b_to= Branch.objects.get(slug = post_json['branch_to'])
+    products = post_json['products']
+    if len(products) == 0:
+        return HttpResponse('{"response": "error", "message":"Transfer is empty"}', content_type='application/json')
+    pt = ProductTransfer(branch_from = b_from, branch_to = b_to, status = 'sent', user = user)
+    pt.save()
+    eh_from = ExistenceHistory(branch = b_from, user = user, action = 'baja_tras', details="Traspaso")
+    eh_from.save()
+    for product in products:
+        try:
+            p = Product.objects.get(slug = product['code'])
+            ptd = ProductTransferDetail(product = p, quantity = product['qty'], product_transfer = pt)
+            ptd.save()
+            ehd = ExistenceHistoryDetail(product = p, quantity = product['qty'], existence = eh_from)
+            ehd.save()
+
+        except:
+            logger.error("Unexpected error in Transfer:\n{0}".format(traceback.format_exc()))
+    return HttpResponse("{ \"status\": \"ok\", \"message\":\"ok\"}", content_type="application/json")
+
+def accept_transfer(request, id):
+    pt = ProductTransfer.objects.get(id = id)
+    branch = pt.branch_to.slug
+    branches = request.user.employee.get_branches_slugs()
+    if branch not in branches:
+        return HttpResponse("{}", status = 500);
+
+    ptds = pt.producttransferdetail_set.all()
+    eh_to = ExistenceHistory(branch = pt.branch_to, user = request.user, action = 'alta_tras', details = "Traspaso")
+    eh_to.save()
+    logger.debug("eh id: {0}".format(eh_to.id))
+    for ptd in ptds:
+        try:
+            ehd = ExistenceHistoryDetail(product = ptd.product, quantity = ptd.quantity, existence = eh_to)
+            ehd.save()
+            logger.debug("ehd id: {0}".format(ehd.id))
+        except:
+            logger.error("Unexpected error in Transfer:\n{0}".format(traceback.format_exc()))
+    pth = ProductTransferHistory(status_previous = pt.status, status_changed = 'delivered', product_transfer = pt, user = request.user)
+    pth.save()
+    pt.status = 'delivered'
+    pt.save()
+    return redirect('products-transfers')

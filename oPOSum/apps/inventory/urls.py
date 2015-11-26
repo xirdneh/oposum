@@ -20,4 +20,7 @@ urlpatterns = patterns('oPOSum.apps.inventory.views',
     url(r'^print-inventory-existence(/(?P<id>[0-9]+))?/?$', 'print_inventory_existence', name="inventory_print-inventory_existence"),
     url(r'^print-inventory-surplus/?$', 'print_inventory_surplus', name="inventory_print-inventory_surplus"),
     url(r'^print-inventory-missing/?$', 'print_inventory_missing', name="inventory_print-inventory_missing"),
+    url(r'^transfers/save-transfer/?$', 'save_transfer', name="products-save_transfer"),
+    url(r'^transfers/accept-transfer/(?P<id>[0-9]+)/?$', 'accept_transfer', name="products-accept_transfer"),
+    url(r'^transfers/(?P<branch>[\-a-zA-Z0-9\.]+)?/?$', 'transfers', name="products-transfers"),
 )

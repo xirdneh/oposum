@@ -100,7 +100,7 @@ function check_layaway_form(){
         $("#layaway-form-msg").text(txt + ". No se ha especificado un abono");
         return false;
     }
-    var total = $("tot-Total value").val();
+    var total = $(".tot-Total value").val();
     totla = parseFloat(total);
     var payment = $("#layaway-payment").val();
     payment = parseFloat(payment);

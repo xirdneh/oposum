@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render
 from oPOSum.apps.authentication.models import Employee
+from oPOSum.apps.branches.models import Branch
 from django.core import serializers
 
 def login_user(request):
@@ -13,6 +14,7 @@ def login_user(request):
                 login(request, user)
                 branches = user.employee.branch.all()
                 request.session['user_branches'] = serializers.serialize("json", branches)
+                request.session['all_branches'] = serializers.serialize("json", Branch.objects.all())
                 if 'branch_selected' not in request.session:
                     if len(branches) > 1:
                         request.session['branch_selected'] = 'None'

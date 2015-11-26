@@ -21,6 +21,8 @@ class ExistenceHistory(models.Model):
         choices = (
             (u'altas', u'Altas'),
             (u'bajas', u'Bajas'),
+            (u'baja_tras', u'baja_tras'),
+            (u'alta_tras', u'alta_tras'),
         ),
     )
     printed = models.BooleanField(_("Enabled"), default=False)
@@ -100,3 +102,23 @@ class InventoryAdjustment(models.Model):
             quantity = self.quantity,
             message = self.message
         )
+
+class ProductTransfer(models.Model):
+    branch_from = models.ForeignKey('branches.Branch', related_name='from')
+    branch_to = models.ForeignKey('branches.Branch', related_name='to')
+    status = models.TextField(_("Status"), max_length = 255, blank=False, null=False)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
+    user = models.ForeignKey(User)
+
+class ProductTransferDetail(models.Model):
+    product = models.ForeignKey('products.Product')
+    quantity = models.PositiveIntegerField(_("Quantity"), default=1)
+    product_transfer = models.ForeignKey(ProductTransfer)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
+
+class ProductTransferHistory(models.Model):
+    date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
+    status_previous = models.TextField(_("Status Previous"), max_length = 255, blank=False, null=False)
+    status_changed = models.TextField(_("Status Changed"), max_length = 255, blank=False, null=False)
+    product_transfer = models.ForeignKey(ProductTransfer)
+    user = models.ForeignKey(User)

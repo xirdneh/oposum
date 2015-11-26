@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from oPOSum.apps.products.forms import *
 from oPOSum.apps.products.models import *
+from oPOSum.apps.branches.models import Branch
 from oPOSum.libs import utils as pos_utils
 from oPOSum.libs import products as prod_utils
 from django.contrib.auth.decorators import login_required
@@ -126,31 +127,8 @@ def get_product(request, slug):
     logger.debug("Buscando producto con slug: {0}".format(slug))
     try:
         p = Product.objects.get(slug=slug.replace("-",""))
-        if p.regular_price == Decimal('0.00') and p.line is not None:
-            retail_price = p.equivalency * p.line.price
-        else:
-            retail_price = p.regular_price
-        desc = prod_utils.get_discounts(p)
-        des = {'discount': '0'}
-        if desc is not None and desc and desc:
-            try:
-                des = {'discount': desc.slug[-2:] }
-            except:
-                des = {'discount': '0'}
-        ret = {
-            'status':'ok',
-            'message': 'Existente',
-            'product': 
-                {
-                    'slug':p.slug, 
-                    'price':str(p.regular_price), 
-                    'description':p.description,
-                    'retail_price':str(round(retail_price,2))
-                },
-            'desc': des
-        }
-        logger.debug("Producto conocido: {0}".format(p))
     except Product.DoesNotExist:
+        logger.debug("No conocemos el product: {0}".format(p));
         p = migrate.get_art(slug.replace("-", "")) 
         if len(p) > 0 :
             p = migrate.get_migration_details( p[0][15], p[0][1] ) 
@@ -168,6 +146,32 @@ def get_product(request, slug):
             ret['status'] = 'error'
             ret['message'] = 'Producto no encontrado'
             ret['slug'] = slug
+
+    logger.debug('Producto conocido')
+    if p.regular_price == Decimal('0.00') and p.line is not None:
+        retail_price = p.equivalency * p.line.price
+    else:
+        retail_price = p.regular_price
+    desc = prod_utils.get_discounts(p)
+    des = {'discount': '0'}
+    if desc is not None and desc and desc:
+        try:
+            des = {'discount': desc.slug[-2:] }
+        except:
+            des = {'discount': '0'}
+    ret = {
+        'status':'ok',
+        'message': 'Existente',
+        'product': 
+            {
+                'slug':p.slug, 
+                'price':str(p.regular_price), 
+                'description':p.description,
+                'retail_price':str(round(retail_price,2))
+            },
+        'desc': des
+    }
+    logger.debug("Producto conocido: {0}".format(p))
     return HttpResponse(json.dumps(ret) , mimetype='application/json')
 
 def __get_full_product(slug):
@@ -234,3 +238,4 @@ def search(request):
     ps = Product.objects.filter(Q(slug__icontains=q) | Q(name__icontains=q))
     
     return render_to_response('products/search.html', { 'products' : ps}, context_instance=RequestContext(request))
+
