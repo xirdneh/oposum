@@ -139,14 +139,14 @@ class Product(models.Model):
         inves = []
         for key, val in invs.items():
             inves += self.inventoryentry_set.filter(inv = val)
-        logger.debug("Inves: {0}".format(inves))
         ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name', 'existence__date_time')
         ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name','existence__date_time')
         ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name', 'sale__date_time')
-        r_positive = reduce(lambda x, y: x + y.quantity, ehs_positive, 0)
-        r_einv = reduce(lambda x, y: x + y.quantity, inves, 0)
-        r_negative = reduce(lambda x, y: x + y.quantity, ehs_negative, 0)
-        r_sales = reduce(lambda x, y: x + y.quantity, ehs_sales, 0)
+        r_positive = reduce(lambda x, y: x + y.quantity if invs[y.existence.branch.name].date_time <= y.existence.date_time else x, ehs_positive, 0)
+        r_einv = reduce(lambda x, y: x + y.quantity , inves, 0)
+        r_negative = reduce(lambda x, y: x + y.quantity if invs[y.existence.branch.name].date_time <= y.existence.date_time else x, ehs_negative, 0)
+        r_sales = reduce(lambda x, y: x + y.quantity
+                            if invs[y.sale.branch.name].date_time <= y.sale.date_time else x, ehs_sales, 0)
         total = r_positive + r_einv - r_negative - r_sales;
         tz = pytz.timezone('America/Monterrey')
         totales = {}
@@ -155,7 +155,7 @@ class Product(models.Model):
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    ) for o in ehs_positive]
+                    ) for o in ehs_positive if invs[o.existence.branch.name].date_time <= o.existence.date_time]
         for e in entries:
             if not e['branch'] in totales:
                 totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven = 0)
@@ -185,7 +185,7 @@ class Product(models.Model):
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    ) for o in ehs_negative]
+                    ) for o in ehs_negative if invs[o.existence.branch.name].date_time <= o.existence.date_time]
 
         for e in exits:
             if not e['branch'] in totales:
@@ -201,7 +201,7 @@ class Product(models.Model):
                     date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     quantity = o.quantity,
                     folio_number = o.sale.folio_number
-                    ) for o in ehs_sales if o.sale is not None ]
+                    ) for o in ehs_sales if o.sale is not None and invs[o.sale.branch.name].date_time <= o.sale.date_time]
 
         for e in sales:
             if not e['branch'] in totales:
@@ -231,7 +231,7 @@ class Product(models.Model):
                     id = o.layaway.id,
                     branch = o.layaway.branch.name,
                     date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    ) for o in lay_prods]
+                    ) for o in lay_prods if invs[o.layaway.branch.name].date_time <= o.layaway.date_time]
 
             for e in layaways:
                 if not e['branch'] in totales:
@@ -252,7 +252,7 @@ class Product(models.Model):
                     id = o.ticket.id,
                     branch = o.ticket.branch.name,
                     date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    ) for o in ws_prods]
+                    ) for o in ws_prods if invs[o.ticket.branch.name].date_time <= o.date_time]
 
             for e in workshops:
                 if not e['branch'] in totales:
@@ -270,3 +270,18 @@ class Product(models.Model):
             totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
         ret['totals']['tot_branches'] = totales
         return ret
+'''
+class ProductStatus(models.Model):
+    product = models.ForeignKey('products.Product')
+    quantity = models.PositiveIntegerField(_("Quantity"), default=1)
+    branch_from = models.ForeignKey('branches.Branch', related_name='from')
+    branch_to = models.ForeignKey('branches.Branch', related_name='to')
+    status = models.TextField(_("Status"), max_length = 255, blank=False, null=False)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
+
+class ProductStatusHistory(models.Model):
+    product_status = models.ForeignKey(ProductStatus)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
+    status_previous = models.TextField(_("Status Previous"), max_length = 255, blank=False, null=False)
+    status_changed = models.TextField(_("Status Changed"), max_length = 255, blank=False, null=False)
+'''
