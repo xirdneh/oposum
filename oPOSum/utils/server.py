@@ -8,7 +8,7 @@ import cgi
 import json
 import logging 
 import logging.handlers as handlers
-import win32print
+#import win32print
 import time
 import traceback
 
@@ -93,7 +93,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('jsonp({"printers": ["printer1", "printer2"]})')
+            self.wfile.write('{"printers": ["printer1", "printer2"]}')
         else:
             self.send_response(403)
             self.send_header('Content-Type', 'application/json')
@@ -127,15 +127,11 @@ class SimpleHttpServer():
      def stop(self):
          self.server.shutdown()
          self.waitForThread()
-''' 
-if __name__=='__main__':
-     parser = argparse.ArgumentParser(description='HTTP Server')
-     parser.add_argument('port', type=int, help='Listening port for HTTP Server')
-     parser.add_argument('ip', help='HTTP Server IP')
-     args = parser.parse_args()
  
+if __name__=='__main__':
+
      server = SimpleHttpServer('0.0.0.0', 9099)
      print 'HTTP Server Running...........111'
      server.start()
      server.waitForThread()
-'''
+
