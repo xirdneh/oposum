@@ -128,7 +128,7 @@ def get_product(request, slug):
     try:
         p = Product.objects.get(slug=slug.replace("-",""))
     except Product.DoesNotExist:
-        logger.debug("No conocemos el product: {0}".format(p));
+        logger.debug("No conocemos el product: {0}".format(slug));
         p = migrate.get_art(slug.replace("-", "")) 
         if len(p) > 0 :
             p = migrate.get_migration_details( p[0][15], p[0][1] ) 
