@@ -132,7 +132,6 @@ def get_product(request, slug):
         p = migrate.get_art(slug.replace("-", "")) 
         if len(p) > 0 :
             p = migrate.get_migration_details( p[0][15], p[0][1] ) 
-            logger.debug("Producto desconocido: {0}".format(p))
             logger.error("Producto desconocido: {0}".format(p))
             ret = {
                 'status':'ok',
@@ -140,7 +139,6 @@ def get_product(request, slug):
                 'product':p
                 }
         else:
-            logger.debug("Producto no encontrado")
             logger.error("Producto no encontrado")
             ret = {}
             ret['status'] = 'error'
