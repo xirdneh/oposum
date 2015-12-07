@@ -94,7 +94,7 @@ def save_exits(request):
                 #        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
             except Existence.DoesNotExist:
                 entries = ExistenceHistoryDetail.objects.filter(product = p, 
-                                       existence__branch = b, existence__action = 'altas')
+                                       existence__branch = b, existence__action__in = ['altas', 'alta_tras'])
                 if len(entries) > 0:
                     isFine = True
                 else:
