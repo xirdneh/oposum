@@ -529,7 +529,7 @@ def transfers(request, branch = None):
         show_form = False
     branches = request.user.employee.get_branches_slugs()
     if branch not in branches:
-        return HttpResponse("{}", status_code = 500);
+        return HttpResponse("{}", status = 500);
     tz = timezone('America/Monterrey')
     b = Branch.objects.get(slug = branch)
     tfrom = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_from = b).order_by('date_time')
