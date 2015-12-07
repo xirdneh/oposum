@@ -144,7 +144,7 @@ def get_product(request, slug):
             ret['status'] = 'error'
             ret['message'] = 'Producto no encontrado'
             ret['slug'] = slug
-
+        return HttpResponse(json.dumps(ret) , mimetype='application/json')
     logger.debug('Producto conocido')
     if p.regular_price == Decimal('0.00') and p.line is not None:
         retail_price = p.equivalency * p.line.price
