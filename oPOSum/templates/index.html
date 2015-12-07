@@ -13,12 +13,12 @@
                 <li><a href="/inventory/entries">Existencias</a></li>
                 <li><a href="/inventory/inventory-check">Inventarios</a></li>
                 <li><a href="/pos/sales">Ventas</a></li>
-                <li><a href="/clients/">Clientes</a><li>
-                <li><a href="/transfers/">Traspaso</a><li>
+                <li><a href="/clients/">Clientes</a></li>
+                <li><a href="/inventory/transfers/">Traspaso</a><li>
             {% else %}
                 <li><a href="/pos/sales">Ventas</a></li>
-                <li><a href="/clients/">Clientes</a><li>
-                <li><a href="/transfers/">Traspaso</a><li>
+                <li><a href="/clients/">Clientes</a></li>
+                <li><a href="/inventory/transfers/">Traspaso</a><li>
             {% endif %}
             <div id="user_branches"></div>
             {{ request.session.branch_selected }}
