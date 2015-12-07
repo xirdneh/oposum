@@ -137,23 +137,30 @@ def get_discounts(p):
     tz = pytz.timezone('America/Monterrey')
     dt = dt.astimezone(tz)
     desc = False
-    if( datetime(2015, 11, 1, 0, 0, 0, 0, tz) <= dt and
-        datetime(2015, 11, 30, 23, 59, 0, 0, tz) >= dt ):
-
-        if (p.provider.sku == '81' or p.provider.sku == '91') and (p.has_category('bodega', '1') or p.has_category('bodega', '2')):
-            desc = Product.objects.get(slug = 'NOVDESC50')
-        elif p.provider.sku == 'BE':
-            desc = Product.objects.get(slug = 'NOVDESC50')
+    slug = False
+    if( datetime(2015, 12, 1, 0, 0, 0, 0, tz) <= dt and
+        datetime(2015, 12, 31, 23, 59, 0, 0, tz) >= dt ):
+        if (p.provider.sku == 'BE'):
+            slug = 'DICDESC70'
         elif p.provider.sku == 'HW':
-            desc = Product.objects.get(slug = 'NOVDESC30')
-        elif p.provider.sku == '23':
-            cats = p.category.all();
-            for cat in cats:
-                if cat.slug == '17':
-                    desc = Product.objects.get(slug = 'NOVDESC30')
-        elif p.provider.sku == 'HO' or p.provider.sku == 'SP':
-            desc = Product.objects.get(slug = 'NOVDESC15')
+            slug = 'DICDESC50'
+        elif p.provider.sku == '81' or p.provider.sku == '91':
+            slug = 'DICDESC50'
+        elif p.provider.sku == 'SE' and p.has_category('linea', '14'):
+            slug = 'DICDESC50'
+        elif p.has_category('area', 'ACERO'):
+            slug = 'DICDESC20'
+        elif p.provider.sku == 'AR':
+            slug = 'DICDESC50'
+        elif p.provider.sku == 'SP':
+            slug = 'DICDESC10'
+        elif p.provider.sku == 'HO':
+            slug = 'DICDESC20'
         elif p.provider.sku == 'DR':
-            desc = Product.objects.get(slug = 'NOVDESC70')
+            slug = 'DICDESC70'
+        elif p.provider.sku == '07':
+            slug = 'DICDESC10'
+        if slug:
+            desc = Product.objects.get(slug = slug)
         return desc
     return False  

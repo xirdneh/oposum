@@ -120,7 +120,7 @@ var $pp = $("#product_price").keyup(function(e){
     if(e.keyCode == 13){
         var $data = dataView.getItems();
         var $id = 0;
-        if ($data.length == 0){
+        if ($data.length === 0){
             $id = 0;
         }
         else {
@@ -133,8 +133,9 @@ var $pp = $("#product_price").keyup(function(e){
         dataView.setItems($data);
         $desc = $("#product_desc").val();
         if($desc != "0"){
+            $desc = +$desc < 10 ? '0' + $desc : $desc;
             $id++;
-            $data.push({'id': $id, 'slug': 'NOVDESC' + $desc, 'desc': 'DESCUENTO ' + $desc + '% NOVIEMBRE',
+            $data.push({'id': $id, 'slug': 'DICDESC' + $desc, 'desc': 'DESCUENTO ' + $desc + '% DICIEMBRE',
             'price': $prod.qty * (-1 * (+$("#product_price").val() * (+$desc / 100))), 'qty': 1}
             );
         }
