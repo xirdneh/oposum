@@ -93,8 +93,8 @@ def save_exits(request):
                 #    if(e.product.get_branch_transactions_count(b) < q):
                 #        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
             except Existence.DoesNotExist:
-                entries = ExistenceHistory.object.fitler(product = p, 
-                                       branch = b, action = 'altas')
+                entries = ExistenceHistoryDetail.object.fitler(product = p, 
+                                       existence__branch = b, existence__action = 'altas')
                 if len(entries) > 0:
                     isFine = True
                 else:
