@@ -4,6 +4,8 @@ from django.utils.translation import ugettext as _
 from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from datetime import datetime
+from pytz import timezone
+import pytz
 
 # Create your models here.
 class Existence(models.Model):
@@ -109,6 +111,25 @@ class ProductTransfer(models.Model):
     status = models.TextField(_("Status"), max_length = 255, blank=False, null=False)
     date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
     user = models.ForeignKey(User)
+
+    def as_json(self):
+        tz = timezone('America/Monterrey')
+        products = [
+            {
+                slug: o.product.slug,
+                name: o.product.name,
+                desc: o.product.description,
+                quantity: o.quantity
+            } for o in self.proucttransferdetail_set.all()
+        ]
+        return dict(
+            id = self.id,
+            branch_from = self.branch_from.name,
+            branch_to = self.branch_to.name,
+            status = self.status,
+            date_time = tz.normalize(self.date_time.astimezone(tz)),
+            products = products
+        )
 
 class ProductTransferDetail(models.Model):
     product = models.ForeignKey('products.Product')

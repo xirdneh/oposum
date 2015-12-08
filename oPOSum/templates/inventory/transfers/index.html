@@ -45,6 +45,26 @@
                         <td> {{t.branch_to}}</td>
                         <td> {{t.date_time}}</td>
                     </tr>
+                    <tr>
+                        <td colspan="3" style="width:80%; margin:0 auto;">
+                            <table>
+                                <thead>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                </thead>
+                                <tbody>
+                                    {% for p in t.products %}
+                                    <tr>
+                                        <td>p.name</td>
+                                        <td>p.desc</td>
+                                        <td>p.quantity</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
                 {% endfor %}
               {% else %}
                 {% for t in trans_to %}
@@ -57,6 +77,26 @@
                             {% csrf_token %}
                             <button class="btn btn-success" type = "submit">Recibir</button>
                             </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="width:80%; margin:0 auto; text-align:center;">
+                            <table>
+                                <thead>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                </thead>
+                                <tbody>
+                                    {% for p in t.products %}
+                                    <tr>
+                                        <td>p.name</td>
+                                        <td>p.desc</td>
+                                        <td>p.quantity</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </td>
                     </tr>
                 {% endfor %}
