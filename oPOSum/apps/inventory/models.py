@@ -120,7 +120,7 @@ class ProductTransfer(models.Model):
                 name: o.product.name,
                 desc: o.product.description,
                 quantity: o.quantity
-            } for o in self.proucttransferdetail_set.all()
+            } for o in self.prdoucttransferdetail_set.all()
         ]
         return dict(
             id = self.id,
