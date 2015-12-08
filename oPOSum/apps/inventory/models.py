@@ -116,10 +116,10 @@ class ProductTransfer(models.Model):
         tz = timezone('America/Monterrey')
         products = [
             {
-                slug: o.product.slug,
-                name: o.product.name,
-                desc: o.product.description,
-                quantity: o.quantity
+                'slug': o.product.slug,
+                'name': o.product.name,
+                'desc': o.product.description,
+                'quantity': o.quantity
             } for o in self.producttransferdetail_set.all()
         ]
         return dict(
