@@ -533,7 +533,7 @@ def transfers(request, branch = None):
     tz = timezone('America/Monterrey')
     b = Branch.objects.get(slug = branch)
     tfrom = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_from = b).order_by('date_time')
-    trans_from = [tfrom.as_json() for o in tfrom]
+    trans_from = [o.as_json() for o in tfrom]
     tto = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_to = b)
     trans_to = [o.as_json() for o in tto]
     return render_to_response('inventory/transfers/index.html', { 'branch': b, 'trans_from': trans_from, 'trans_to': trans_to, 'show_form': show_form}, context_instance=RequestContext(request))
