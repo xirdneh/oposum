@@ -158,8 +158,6 @@ def get_discounts(p):
             slug = 'DICDESC20'
         elif p.provider.sku == 'DR':
             slug = 'DICDESC70'
-        elif p.provider.sku == '07':
-            slug = 'DICDESC10'
         if slug:
             desc = Product.objects.get(slug = slug)
         return desc
