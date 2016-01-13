@@ -228,7 +228,7 @@ def get_transactions(request, slug):
 def show_transactions(request, slug):
     p = Product.objects.get(slug = slug.replace('-', ''))
     transactions = p.get_transactions()
-    return render_to_response('products/show_transactions.html', { 'transactions' : transactions, 'product' : p}, context_instance=RequestContext(request))
+    return render_to_response('products/show_transactions.html', { 'transactions' : transactions, 'product' : p, 'product_cats': p.category.all()}, context_instance=RequestContext(request))
 
 @login_required
 def search(request):

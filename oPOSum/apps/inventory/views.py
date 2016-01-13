@@ -552,7 +552,7 @@ def save_transfer(request):
         return HttpResponse('{"response": "error", "message":"Transfer is empty"}', content_type='application/json')
     pt = ProductTransfer(branch_from = b_from, branch_to = b_to, status = 'sent', user = user)
     pt.save()
-    eh_from = ExistenceHistory(branch = b_from, user = user, action = 'baja_tras', details="Traspaso")
+    eh_from = ExistenceHistory(branch = b_from, user = user, action = 'baja_tras', details="Traspaso {0}".format(pt.id))
     eh_from.save()
     for product in products:
         try:
@@ -574,7 +574,7 @@ def accept_transfer(request, id):
         return HttpResponse("{}", status = 500);
 
     ptds = pt.producttransferdetail_set.all()
-    eh_to = ExistenceHistory(branch = pt.branch_to, user = request.user, action = 'alta_tras', details = "Traspaso")
+    eh_to = ExistenceHistory(branch = pt.branch_to, user = request.user, action = 'alta_tras', details = "Traspaso {0}".format(pt.id))
     eh_to.save()
     logger.debug("eh id: {0}".format(eh_to.id))
     for ptd in ptds:

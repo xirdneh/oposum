@@ -4,10 +4,22 @@
 {% block main_content %}
     <h2> Movimientos de {{ product.name }} </h2>
     <p>{{product.description}}</p>
-
+    <ul>
+        {{product}}
+        <li><strong>Proveedor</strong>: {{product.provider.sku}} - {{product.provider.name}}</li>
+        <li><strong>Categorias</strong>: 
+            <ul>
+                {% for cat in product_cats %}
+                    <li><strong>{{cat.type}}</strong>: {{cat.slug}} - {{cat.name}}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><strong>Precio</strong>: ${{product.regular_price}}.=</li>
+        <li><strong>Peso</strong>: {{product.equivalency}} grms</li>
+    </ul>
 <div class="panel panel-info">
     <div class="panel-heading"><a href="#">Resumen</a></div>
-    <table class="table table-bordered table-condensed">
+    <table class="table table-bordered table-condensed table-striped">
         <thead>
             <tr>
                 <th>Movimiento</th>
@@ -23,6 +35,12 @@
                 </tr>
                 <tr>
                     <td>Bajas <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.exits}}</td>
+                </tr>
+                <tr>
+                    <td>Altas Traspasos <span class="glyphicon glyphicon-plus text-success"></span></td><td>{{transactions.totals.tras_to}}</td>
+                </tr>
+                <tr>
+                    <td>Bajas Traspasos <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.tras_from}}</td>
                 </tr>
                 <tr>
                     <td>Ventas <span class="glyphicon glyphicon-minus text-danger"></span></td><td>{{transactions.totals.sales}}</td>
@@ -43,13 +61,15 @@
     <div class="panel-heading">
         <a href="#">Existencia</a>
     </div>
-    <table class="table table-bordered table-condensed">
+    <table class="table table-bordered table-condensed table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>
                 <th>Inventarios <span class="glyphicon glyphicon-plus text-success"></span></th>
                 <th>Altas <span class="glyphicon glyphicon-plus text-success"></span></th>
                 <th>Bajas <span class="glyphicon glyphicon-minus text-danger"></span></th>
+                <th>Traspasos <span class="glyphicon glyphicon-plus text-success"></span></th>
+                <th>Traspasos <span class="glyphicon glyphicon-minus text-danger"></span></th>
                 <th>Ventas <span class="glyphicon glyphicon-minus text-danger"></span></th>
                 <th>Separados <span class="glyphicon glyphicon-minus text-danger"></span></th>
                 <th>Existencias Actuales</th>
@@ -62,6 +82,8 @@
                     <td>{{t.inven}}</td>
                     <td>{{t.entries}}</td>
                     <td>{{t.exits}}</td>
+                    <td>{{t.entries_tras}}</td>
+                    <td>{{t.exits_tras}}</td>
                     <td>{{t.sales}}</td>
                     <td>{{t.layaways}}</td>
                     <td>{{ t.actual}}</td>
@@ -75,7 +97,7 @@
 <div class="panel panel-success">
     <div class="panel-heading"><a href="#">Inventarios</a>
                                <span class="badge pull-right">{{transactions.totals.inven}}<span></div>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>
@@ -102,7 +124,7 @@
 <div class="panel panel-success">
     <div class="panel-heading"><a href="#">Altas</a>
                                <span class="badge pull-right">{{transactions.totals.entries}}<span></div>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>
@@ -129,7 +151,7 @@
 <div class="panel panel-danger">
     <div class="panel-heading"><a href="#">Bajas</a>
                     <span class="badge pull-right">{{transactions.totals.exits}}<span></div>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>
@@ -152,11 +174,41 @@
 </div>
 {% endif %}
 
+{% if transactions.tras_to|length > 0 %}
+<div class="panel panel-success">
+    <div class="panel-heading"><a href="#">Traspasos</a>
+            <span class="badge pull-right">{{transactions.totals.tras_to}}</span>
+    </div>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>De</th>
+                <th>Para</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for e in transactions.tras_to %}
+            <tr>
+                <td>{{e.id}}</td>
+                <td>{{e.branch_from}}</td>
+                <td>{{e.branch_to}}</td>
+                <td>{{e.quantity}}</td>
+                <td>{{e.date_time}}</td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% if transactions.sales|length > 0 %}
 <div class="panel panel-warning">
     <div class="panel-heading"><a href="#">Ventas</a>
                     <span class="badge pull-right">{{transactions.totals.sales}}<span></div>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>
@@ -183,7 +235,7 @@
 <div class="panel panel-warning">
     <div class="panel-heading"><a href="#">Separados</a>
                 <span class="badge pull-right">{{transactions.totals.layaways}}<span></div>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Sucursal</th>

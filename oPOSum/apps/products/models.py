@@ -139,6 +139,7 @@ class Product(models.Model):
         ret['workshops'] = []
         ret['sales'] = []
         ret['totals'] = {}
+        ret['totals']['tot_branches'] = {}
         ret['inven'] = []
         ret['entries'] = []
         ret['entries_tras'] = []
@@ -147,116 +148,220 @@ class Product(models.Model):
         ret['tras_to'] = []
         apps = pos_utils.get_installed_oposum_apps()
         for branch in branches:
+            qty = 0
+            logger.info('Branch: {0}'.format(branch.name))
+            if branch.name not in ret['totals']['tot_branches']:
+                ret['totals']['tot_branches'][branch.name] = {}
             inventory = self.inventoryentry_set.filter(inv__enabled = False, 
                                                        inv__branch = branch).order_by('date_time') 
+            logger.info('Inventory: {0}'.format(len(inventory)))
             if len(inventory) > 0:
                 inventory = inventory.last()
-                ret['inven'] += [dict(
-                    quantity = inventory.quantity,
-                    id = inventory.inv.id,
-                    branch = inventory.inv.branch.name,
-                    date_time = inventory.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    )]
+                if inventory.quantity > 0:
+                    ret['inven'] += [dict(
+                        quantity = inventory.quantity,
+                        id = inventory.inv.id,
+                        branch = inventory.inv.branch.name,
+                        date_time = inventory.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                        )]
+                    qty = inventory.quantity
+                    if 'inven' not in ret['totals']['tot_branches'][branch.name]:
+                        ret['totals']['tot_branches'][branch.name]['inven'] = 0
+                    ret['totals']['tot_branches'][branch.name]['inven'] += qty
+                    if 'inven' not in ret['totals']:
+                        ret['totals']['inven'] = 0
+                    ret['totals']['inven'] += qty
+                else:
+                    inventory = None
+                    ret['totals']['tot_branches'][branch.name]['inven'] = 0
+                    if 'inven' not in ret['totals']:
+                        ret['totals']['inven'] = 0
+                             
             else:
                 inventory = None
+                ret['totals']['tot_branches'][branch.name]['inven'] = 0
+                if 'inven' not in ret['totals']:
+                    ret['totals']['inven'] = 0
+            qty = 0
             altas = ExistenceHistoryDetail.objects.filter(product = self, 
                                                           existence__action = 'altas', 
                                                           existence__branch = branch).order_by('existence__date_time')
+            logger.info('Entries: {0}'.format(len(altas)))
             if inventory is not None:
                 altas = altas.filter(existence__date_time__gte = inventory.date_time)
-            ret['entries'] += [dict(
+            logger.info('Entries date: {0}'.format(len(altas)))
+            b_entries = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    ) for o in entries]
+                    ) for o in altas]
+            ret['entries'] += b_entries
+            qty = reduce(lambda x, y: x + y['quantity'], b_entries, 0)
 
+            if 'entries' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['entries'] = 0
+            ret['totals']['tot_branches'][branch.name]['entries'] += qty
+            if 'entries' not in ret['totals']:
+                ret['totals']['entries'] = 0
+            ret['totals']['entries'] += qty
+            qty = 0
             altas_tras = ExistenceHistoryDetail.objects.filter(product = self,
                                                                existence__action = 'alta_tras',
                                                                existence__branch = branch).order_by('existence__date_time')
             if inventory is not None:
                 altas_tras = altas_tras.filter(existence__date_time__gte = inventory.date_time)
-            ret['entries_tras'] += [dict(
+            b_entries_tras = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in altas_tras]
+            qty = reduce(lambda x, y: x + y['quantity'], b_entries_tras, 0)
+            ret['entries_tras'] += b_entries_tras
 
+            if 'entries_tras' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['entries_tras'] = 0
+            ret['totals']['tot_branches'][branch.name]['entries_tras'] += qty
+            if 'entries_tras' not in ret['totals']:
+                ret['totals']['entries_tras'] = 0
+            ret['totals']['entries_tras'] += qty
+            qty = 0
             bajas = ExistenceHistoryDetail.objects.filter(product = self,
                                                           existence__action = 'bajas',
                                                           existence__branch = branch).order_by('existence__date_time')
             if inventory is not None:
                 bajas = bajas.filter(existence__date_time__gte = inventory.date_time)
-            ret['exits'] += [dict(
+            b_exits = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in bajas]
+            qty = reduce(lambda x, y: x + y['quantity'], b_exits, 0)
+            ret['exits'] += b_exits
 
+            if 'exits' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['exits'] = 0
+            ret['totals']['tot_branches'][branch.name]['exits'] += qty
+            if 'exits' not in ret['totals']:
+                ret['totals']['exits'] = 0
+            ret['totals']['exits'] += qty
+
+            qty = 0
             bajas_tras = ExistenceHistoryDetail.objects.filter(product = self,
                                                                existence__action = 'baja_tras',
                                                                existence__branch = branch).order_by('existence__date_time')
             if inventory is not None:
                 bajas_tras = bajas_tras.filter(existence__date_time__gte = inventory.date_time)
-            ret['exits_tras'] += [dict(
+            b_exits_tras = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in bajas_tras]
+            qty = reduce(lambda x, y: x + y['quantity'], b_exits_tras, 0)
+            ret['exits_tras'] += b_exits_tras
 
+            if 'exits_tras' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['exits_tras'] = 0
+            ret['totals']['tot_branches'][branch.name]['exits_tras'] += qty
+            if 'exits_tras' not in ret['totals']:
+                ret['totals']['exits_tras'] = 0
+            ret['totals']['exits_tras'] += qty
+
+            qty = 0
             sales = SaleDetails.objects.filter(product = self, 
                                                sale__branch = branch, 
-                                               is_active = True).order_by('sale__date_time')
+                                               sale__is_active = True).order_by('sale__date_time')
             if inventory is not None:
                 sales = sales.filter(sale__date_time__gte = inventory.date_time)
-            ret['sales'] += [dict(
+            b_sales = [dict(
                     branch = o.sale.branch.name,
                     date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     quantity = o.quantity,
                     folio_number = o.sale.folio_number
                     ) for o in sales]
+            qty = reduce(lambda x, y: x + y['quantity'], b_sales, 0)
+            ret['sales'] += b_sales
+            if 'sales' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['sales'] = 0
+            ret['totals']['tot_branches'][branch.name]['sales'] += qty
+            if 'sales' not in ret['totals']:
+                ret['totals']['sales'] = 0
+            ret['totals']['sales'] += qty
 
+            qty = 0
             transfers_from = ProductTransferDetail.objects.filter(product = self, 
                                                                   product_transfer__branch_from = branch).order_by('product_transfer__date_time')
             if inventory is not None:
                 transfers_from = transfers_from.filter(product_transfer__date_time__gte = inventory.date_time)
-            ret['tras_from'] += [dict(
+            b_tras_from = [dict(
                     quantity = o.quantity,
                     id = o.product_transfer.id,
-                    branch = o.product_transfer.branch.name,
-                    date_time = o.product_transfer.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    branch_from = o.product_transfer.branch_from.name,
+                    branch_to = o.product_transfer.branch_to.name,
+                    date_time = o.product_transfer.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in transfers_from]
+            qty = reduce(lambda x, y: x + y['quantity'], b_tras_from, 0)
+            ret['tras_from'] += b_tras_from
 
+            if 'tras_from' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['tras_from'] = 0
+            ret['totals']['tot_branches'][branch.name]['tras_from'] += qty
+            if 'tras_from' not in ret['totals']:
+                ret['totals']['tras_from'] = 0
+            ret['totals']['tras_from'] += qty
+
+            qty = 0
             transfers_to = ProductTransferDetail.objects.filter(product = self, 
-                                                                product_transfer__bronch_to = branch).order_by('product_transfer__date_time')
+                                                                product_transfer__branch_to = branch).order_by('product_transfer__date_time')
             if inventory is not None:
                 transfers_to = transfers_to.filter(product_transfer__date_time__gte = inventory.date_time)
 
-            ret['tras_to'] += [dict(
+            b_tras_to = [dict(
                     quantity = o.quantity,
                     id = o.product_transfer.id,
-                    branch = o.product_transfer.branch.name,
-                    date_time = o.product_transfer.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    branch_from = o.product_transfer.branch_from.name,
+                    branch_to = o.product_transfer.branch_to.name,
+                    date_time = o.product_transfer.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in transfers_to] 
+            qty = reduce(lambda x, y: x + y['quantity'], b_tras_to, 0)
+            ret['tras_to'] += b_tras_to
+
+            if 'tras_to' not in ret['totals']['tot_branches'][branch.name]:
+                ret['totals']['tot_branches'][branch.name]['tras_to'] = 0
+            ret['totals']['tot_branches'][branch.name]['tras_to'] += qty
+            if 'tras_to' not in ret['totals']:
+                ret['totals']['tras_to'] = 0
+            ret['totals']['tras_to'] += qty
 
             if 'layaway' in apps:
+                qty = 0
                 from oPOSum.apps.layaway.models import LayawayProduct
                 layaways = LayawayProduct.objects.filter(prod = self, 
                                                          layaway__is_active = True, 
                                                          layaway__branch = branch).order_by('layaway__date_time')
                 if inventory is not None:
                     layaways = layaways.filter(layaway__date_time__gte = inventory.date_time)
-                ret['layaway'] += [dict(
+                b_layaways = [dict(
                         quantity = o.qty,
                         id = o.layaway.id,
                         branch = o.layaway.branch.name,
                         date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
                         ) for o in layaways]
+                qty = reduce(lambda x, y: x + y['quantity'], b_layaways, 0)
+                ret['layaways'] += b_layaways
+
+                if 'layaways' not in ret['totals']['tot_branches'][branch.name]:
+                    ret['totals']['tot_branches'][branch.name]['layaways'] = 0
+                ret['totals']['tot_branches'][branch.name]['layaways'] += qty
+                if 'layaways' not in ret['totals']:
+                    ret['totals']['layaways'] = 0
+                ret['totals']['layaways'] += qty
             
             if 'workshop' in apps:
+                qty = 0
                 from oPOSum.apps.workshop.models import WorkshopProduct
                 workshop_tickets = WorkshopProduct.objects.filter(product = self, 
                                                           ticket__is_active = True,
@@ -264,173 +369,28 @@ class Product(models.Model):
                 if inventory is not None:
                     inventory = workshop_tickets.filter(ticket__date_time__gte = inventory.date_time)
 
-                ret['workshops'] += [dict(
+                b_workshops = [dict(
                     quantity = o.qty,
                     id = o.ticket.id,
                     branch = o.ticket.branch.name,
                     date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
                     ) for o in workshop_tickets]
+                qty = reduce(lambda x, y: x + y['quantity'], b_workshops, 0)
+                ret['workshops'] += b_workshops
 
-        inves = self.inventoryentry_set.filter(inv__enabled = False).order_by('inv').distinct('inv')
-        inves = sorted(inves, key=lambda o: o.inv.date_time)
-        invs = {}
-        for i in inves:
-            invs[i.inv.branch.name] = i.inv
-        inves = []
-        for key, val in invs.items():
-            inves += self.inventoryentry_set.filter(inv = val)
-        ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name', 'existence__date_time')
-        ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name','existence__date_time')
-        ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name', 'sale__date_time')
-        
-        r_positive = reduce(lambda x, y: x + y.quantity if y.existence.branch.name in invs and invs[y.existence.branch.name].date_time <= y.existence.date_time 
-                                                        else x + y.quantity if y.existence.branch.name not in invs else x, ehs_positive, 0)
-        r_einv = reduce(lambda x, y: x + y.quantity , inves, 0)
-        r_negative = reduce(lambda x, y: x + y.quantity if y.existence.branch.name in invs and invs[y.existence.branch.name].date_time <= y.existence.date_time 
-                                                        else x + y.quantity if y.existence.branch.name not in invs else x, ehs_negative, 0)
-        r_sales = reduce(lambda x, y: x + y.quantity if y.sale.branch.name in invs and invs[y.sale.branch.name].date_time <= y.sale.date_time 
-                                                    else x + y.quantity if y.sale.branch.name not in invs else x, ehs_sales, 0)
-        total = r_positive + r_einv - r_negative - r_sales;
-        tz = pytz.timezone('America/Monterrey')
-        totales = {}
-        entries = [dict(
-                    quantity = o.quantity,
-                    id = o.existence.id,
-                    branch = o.existence.branch.name,
-                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    ) for o in ehs_positive if invs[o.existence.branch.name].date_time <= o.existence.date_time]
-        for e in entries:
-            if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven = 0)
-                totales[e['branch']]['entries'] = e['quantity']
-            elif not 'entries' in totales[e['branch']]:
-                totales[e['branch']]['entries'] = e['quantity']
-            else:
-                totales[e['branch']]['entries'] += e['quantity']
+                if 'workshops' not in ret['totals']['tot_branches'][branch.name]:
+                    ret['totals']['tot_branches'][branch.name]['workshops'] = 0
+                ret['totals']['tot_branches'][branch.name]['workshops'] += qty
+                if 'workshops' not in ret['totals']:
+                    ret['totals']['workshops'] = 0
+                ret['totals']['workshops'] += qty
+                
+            ret['totals']['tot_branches'][branch.name]['actual'] = ret['totals']['tot_branches'][branch.name]['inven'] + ret['totals']['tot_branches'][branch.name]['entries'] - ret['totals']['tot_branches'][branch.name]['exits'] + ret['totals']['tot_branches'][branch.name]['entries_tras'] - ret['totals']['tot_branches'][branch.name]['exits_tras'] - ret['totals']['tot_branches'][branch.name]['sales'] - ret['totals']['tot_branches'][branch.name]['layaways']
 
-        inv_entries = [dict(
-                    quantity = o.quantity,
-                    id = o.inv.id,
-                    branch = o.inv.branch.name,
-                    date_time = o.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    ) for o in inves]
-        for e in inv_entries:
-            if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
-                totales[e['branch']]['inven'] = e['quantity']
-            elif not 'inven' in totales[e['branch']]:
-                totales[e['branch']]['inven'] = e['quantity']
-            else:
-                totales[e['branch']]['inven'] += e['quantity']
-
-        exits = [dict(
-                    quantity = o.quantity,
-                    id = o.existence.id,
-                    branch = o.existence.branch.name,
-                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    ) for o in ehs_negative if invs[o.existence.branch.name].date_time <= o.existence.date_time]
-
-        for e in exits:
-            if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
-                totales[e['branch']]['exits'] = e['quantity']
-            elif not 'exits' in totales[e['branch']]:
-                totales[e['branch']]['exits'] = e['quantity']
-            else:
-                totales[e['branch']]['exits'] += e['quantity']
-
-        sales = [dict(
-                    branch = o.sale.branch.name,
-                    date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                    quantity = o.quantity,
-                    folio_number = o.sale.folio_number
-                    ) for o in ehs_sales if o.sale is not None and invs[o.sale.branch.name].date_time <= o.sale.date_time]
-
-        for e in sales:
-            if not e['branch'] in totales:
-                totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
-                totales[e['branch']]['sales'] = e['quantity']
-            elif not 'sales' in totales[e['branch']]:
-                totales[e['branch']]['sales'] = e['quantity']
-            else:
-                totales[e['branch']]['sales'] += e['quantity']
-
-        ret['entries'] = entries
-        ret['exits'] = exits
-        ret['sales'] = sales
-        ret['inven'] = inv_entries
-        ret['totals'] = dict(
-                total = total,
-                entries = r_positive,
-                inven = r_einv,
-                exits = r_negative,
-                sales = r_sales)
-        apps = pos_utils.get_installed_oposum_apps()
-        if 'layaway' in apps:
-            from oPOSum.apps.layaway.models import LayawayProduct
-            lay_prods = LayawayProduct.objects.filter(prod = self).order_by('layaway__branch__name', 'layaway__date_time')
-            layaways = [dict(
-                    quantity = o.qty,
-                    id = o.layaway.id,
-                    branch = o.layaway.branch.name,
-                    date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    ) for o in lay_prods if invs[o.layaway.branch.name].date_time <= o.layaway.date_time]
-
-            for e in layaways:
-                if not e['branch'] in totales:
-                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
-                    totales[e['branch']]['layaways'] = e['quantity']
-                elif not 'layaways' in totales[e['branch']]:
-                    totales[e['branch']]['layaways'] = e['quantity']
-                else:
-                    totales[e['branch']]['layaways'] += e['quantity']
-
-            ret['layaways'] = layaways
-            ret['totals']['layaways'] = reduce(lambda x, y: x + y.qty, lay_prods, 0)
-        if 'workshop' in apps:
-            from oPOSum.apps.workshop.models import WorkshopProduct
-            ws_prods = WorkshopProduct.objects.filter(product = self).order_by('ticket__branch__name', 'ticket__date_time')
-            workshops = [dict(
-                    quantity = o.qty,
-                    id = o.ticket.id,
-                    branch = o.ticket.branch.name,
-                    date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
-                    ) for o in ws_prods if invs[o.ticket.branch.name].date_time <= o.date_time]
-
-            for e in workshops:
-                if not e['branch'] in totales:
-                    totales[e['branch']] = dict(entries= 0, exits= 0, sales= 0, layaways= 0, inven=0)
-                    totales[e['branch']]['workshops'] = e['quantity']
-                elif not 'workshops' in totales[e['branch']]:
-                    totales[e['branch']]['workshops'] = e['quantity']
-                else:
-                    totales[e['branch']]['workshops'] += e['quantity']
-
-            ret['workshops'] = workshops
-            ret['totals']['workshops'] = reduce(lambda x, y: x + y.qty, ws_prods, 0)
-        logger.debug("totals: {0}".format(totales))
-        for b, t in totales.items():
-            totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
-        ret['totals']['tot_branches'] = totales
-
-        logger.info('object: {0}'.format(json.dumps(ret, indent=4)))
+            #logger.info('======================================================')
+            #logger.info('object: {0}'.format(json.dumps(ret, indent=4)))
         return ret
 
-'''
-class ProductStatus(models.Model):
-    product = models.ForeignKey('products.Product')
-    quantity = models.PositiveIntegerField(_("Quantity"), default=1)
-    branch_from = models.ForeignKey('branches.Branch', related_name='from')
-    branch_to = models.ForeignKey('branches.Branch', related_name='to')
-    status = models.TextField(_("Status"), max_length = 255, blank=False, null=False)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
-
-class ProductStatusHistory(models.Model):
-    product_status = models.ForeignKey(ProductStatus)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
-    status_previous = models.TextField(_("Status Previous"), max_length = 255, blank=False, null=False)
-    status_changed = models.TextField(_("Status Changed"), max_length = 255, blank=False, null=False)
-'''
 
 '''
 {
