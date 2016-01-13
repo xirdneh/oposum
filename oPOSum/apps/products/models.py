@@ -140,6 +140,7 @@ class Product(models.Model):
         ret['sales'] = []
         ret['totals'] = {}
         ret['totals']['tot_branches'] = {}
+        ret['totals']['total'] = 0
         ret['inven'] = []
         ret['entries'] = []
         ret['entries_tras'] = []
@@ -152,6 +153,7 @@ class Product(models.Model):
             logger.info('Branch: {0}'.format(branch.name))
             if branch.name not in ret['totals']['tot_branches']:
                 ret['totals']['tot_branches'][branch.name] = {}
+                ret['totals']['tot_branches'][branch.name]['slug'] = branch.slug
             inventory = self.inventoryentry_set.filter(inv__enabled = False, 
                                                        inv__branch = branch).order_by('date_time') 
             logger.info('Inventory: {0}'.format(len(inventory)))
@@ -162,6 +164,7 @@ class Product(models.Model):
                         quantity = inventory.quantity,
                         id = inventory.inv.id,
                         branch = inventory.inv.branch.name,
+                        branch_slug = inventory.inv.branch.slug,
                         date_time = inventory.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
                         )]
                     qty = inventory.quantity
@@ -194,6 +197,7 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
+                    branch_slug = o.existence.branch.slug,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in altas]
             ret['entries'] += b_entries
@@ -215,6 +219,7 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
+                    branch_slug = o.existence.branch.slug,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in altas_tras]
             qty = reduce(lambda x, y: x + y['quantity'], b_entries_tras, 0)
@@ -236,6 +241,7 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
+                    branch_slug = o.existence.branch.slug,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in bajas]
             qty = reduce(lambda x, y: x + y['quantity'], b_exits, 0)
@@ -258,6 +264,7 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.existence.id,
                     branch = o.existence.branch.name,
+                    branch_slug = o.existence.branch.slug,
                     date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in bajas_tras]
             qty = reduce(lambda x, y: x + y['quantity'], b_exits_tras, 0)
@@ -278,6 +285,7 @@ class Product(models.Model):
                 sales = sales.filter(sale__date_time__gte = inventory.date_time)
             b_sales = [dict(
                     branch = o.sale.branch.name,
+                    branch_slug = o.sale.branch.slug,
                     date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     quantity = o.quantity,
                     folio_number = o.sale.folio_number
@@ -300,7 +308,9 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.product_transfer.id,
                     branch_from = o.product_transfer.branch_from.name,
+                    branch_from_slug = o.product_transfer.branch_from.slug,
                     branch_to = o.product_transfer.branch_to.name,
+                    branch_to_slug = o.product_transfer.branch_to.slug,
                     date_time = o.product_transfer.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in transfers_from]
             qty = reduce(lambda x, y: x + y['quantity'], b_tras_from, 0)
@@ -323,7 +333,9 @@ class Product(models.Model):
                     quantity = o.quantity,
                     id = o.product_transfer.id,
                     branch_from = o.product_transfer.branch_from.name,
+                    branch_from_slug = o.product_transfer.branch_from.slug,
                     branch_to = o.product_transfer.branch_to.name,
+                    branch_to_slug = o.product_transfer.branch_to.slug,
                     date_time = o.product_transfer.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                     ) for o in transfers_to] 
             qty = reduce(lambda x, y: x + y['quantity'], b_tras_to, 0)
@@ -348,6 +360,7 @@ class Product(models.Model):
                         quantity = o.qty,
                         id = o.layaway.id,
                         branch = o.layaway.branch.name,
+                        branch_slug = o.layaway.branch.slug,
                         date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
                         ) for o in layaways]
                 qty = reduce(lambda x, y: x + y['quantity'], b_layaways, 0)
@@ -373,6 +386,7 @@ class Product(models.Model):
                     quantity = o.qty,
                     id = o.ticket.id,
                     branch = o.ticket.branch.name,
+                    branch_slug = o.ticket.branch.slug,
                     date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
                     ) for o in workshop_tickets]
                 qty = reduce(lambda x, y: x + y['quantity'], b_workshops, 0)
@@ -385,7 +399,9 @@ class Product(models.Model):
                     ret['totals']['workshops'] = 0
                 ret['totals']['workshops'] += qty
                 
-            ret['totals']['tot_branches'][branch.name]['actual'] = ret['totals']['tot_branches'][branch.name]['inven'] + ret['totals']['tot_branches'][branch.name]['entries'] - ret['totals']['tot_branches'][branch.name]['exits'] + ret['totals']['tot_branches'][branch.name]['entries_tras'] - ret['totals']['tot_branches'][branch.name]['exits_tras'] - ret['totals']['tot_branches'][branch.name]['sales'] - ret['totals']['tot_branches'][branch.name]['layaways']
+            b_actual = ret['totals']['tot_branches'][branch.name]['inven'] + ret['totals']['tot_branches'][branch.name]['entries'] - ret['totals']['tot_branches'][branch.name]['exits'] + ret['totals']['tot_branches'][branch.name]['entries_tras'] - ret['totals']['tot_branches'][branch.name]['exits_tras'] - ret['totals']['tot_branches'][branch.name]['sales'] - ret['totals']['tot_branches'][branch.name]['layaways']
+            ret['totals']['tot_branches'][branch.name]['actual'] = b_actual
+            ret['totals']['total'] += b_actual
 
             #logger.info('======================================================')
             #logger.info('object: {0}'.format(json.dumps(ret, indent=4)))

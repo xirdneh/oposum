@@ -77,7 +77,7 @@
         </thead>
         <tbody>
             {% for b, t in transactions.totals.tot_branches.items %}
-                <tr>
+                <tr class="filter-branch {{t.slug}}">
                     <td>{{b}}</td>
                     <td>{{t.inven}}</td>
                     <td>{{t.entries}}</td>
@@ -108,7 +108,7 @@
         </thead>
         <tbody>
     {% for e in transactions.inven %}
-            <tr>
+            <tr class="filter-branch {{e.branch_slug}}">
                 <td>{{e.branch}}</td>
                 <td>{{e.id}}</td>
                 <td>{{e.quantity}}</td>
@@ -135,7 +135,7 @@
         </thead>
         <tbody>
     {% for e in transactions.entries %}
-            <tr>
+            <tr class="filter-branch {{e.branch_slug}}">
                 <td>{{e.branch}}</td>
                 <td>{{e.id}}</td>
                 <td>{{e.quantity}}</td>
@@ -162,7 +162,7 @@
         </thead>
         <tbody>
     {% for e in transactions.exits %}
-            <tr>
+            <tr class="filter-branch {{e.branch_slug}}">
                 <td>{{e.branch}}</td>
                 <td>{{e.id}}</td>
                 <td>{{e.quantity}}</td>
@@ -191,7 +191,7 @@
         </thead>
         <tbody>
     {% for e in transactions.tras_to %}
-            <tr>
+            <tr class="filter-branch {{e.branch_from_slug}} {{e.branch_to_slug}}">
                 <td>{{e.id}}</td>
                 <td>{{e.branch_from}}</td>
                 <td>{{e.branch_to}}</td>
@@ -219,7 +219,7 @@
         </thead>
         <tbody>
     {% for e in transactions.sales %}
-            <tr>
+            <tr class="filter-branch {{e.branch_slug}}">
                 <td>{{e.branch}}</td>
                 <td>{{e.folio_number}}</td>
                 <td>{{e.quantity}}</td>
@@ -246,7 +246,7 @@
         </thead>
         <tbody>
     {% for e in transactions.layaways %}
-            <tr>
+            <tr class="filter-branch {{e.branch_slug}}">
                 <td>{{e.branch}}</td>
                 <td>{{e.id}}</td>
                 <td>{{e.quantity}}</td>
