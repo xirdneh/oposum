@@ -11,6 +11,7 @@ web:
     build: .
     volumes:
         - .:/oPOSum/
+        - ./.db:/db
     ports:
         - "9000:9000"
     links:

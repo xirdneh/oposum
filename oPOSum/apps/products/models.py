@@ -142,11 +142,14 @@ class Product(models.Model):
         ehs_positive = ExistenceHistoryDetail.objects.filter(product = self, existence__action='altas').order_by('existence__branch__name', 'existence__date_time')
         ehs_negative = ExistenceHistoryDetail.objects.filter(product = self, existence__action='bajas').order_by('existence__branch__name','existence__date_time')
         ehs_sales = SaleDetails.objects.filter(product = self).order_by('sale__branch__name', 'sale__date_time')
-        r_positive = reduce(lambda x, y: x + y.quantity if invs[y.existence.branch.name].date_time <= y.existence.date_time else x, ehs_positive, 0)
+        
+        r_positive = reduce(lambda x, y: x + y.quantity if y.existence.branch.name in invs and invs[y.existence.branch.name].date_time <= y.existence.date_time 
+                                                        else x + y.quantity if y.existence.branch.name not in invs else x, ehs_positive, 0)
         r_einv = reduce(lambda x, y: x + y.quantity , inves, 0)
-        r_negative = reduce(lambda x, y: x + y.quantity if invs[y.existence.branch.name].date_time <= y.existence.date_time else x, ehs_negative, 0)
-        r_sales = reduce(lambda x, y: x + y.quantity
-                            if invs[y.sale.branch.name].date_time <= y.sale.date_time else x, ehs_sales, 0)
+        r_negative = reduce(lambda x, y: x + y.quantity if y.existence.branch.name in invs and invs[y.existence.branch.name].date_time <= y.existence.date_time 
+                                                        else x + y.quantity if y.existence.branch.name not in invs else x, ehs_negative, 0)
+        r_sales = reduce(lambda x, y: x + y.quantity if y.sale.branch.name in invs and invs[y.sale.branch.name].date_time <= y.sale.date_time 
+                                                    else x + y.quantity if y.sale.branch.name not in invs else x, ehs_sales, 0)
         total = r_positive + r_einv - r_negative - r_sales;
         tz = pytz.timezone('America/Monterrey')
         totales = {}
