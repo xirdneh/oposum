@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetail
+from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetail, ProductTransfer, ProductTransferDetail
 from oPOSum.apps.pos.models import Sale, SaleDetails
+from oPOSum.apps.branches.models import Branch
 from oPOSum.libs import utils as pos_utils
 from decimal import *
 from datetime import datetime
@@ -130,7 +131,146 @@ class Product(models.Model):
         return r_inv + r_positive - r_negative - r_sales
 
     def get_transactions(self):
+        branches = Branch.objects.all()
+        tz = pytz.timezone('America/Monterrey')
         ret = {}
+        ret['layaways'] = []
+        ret['exits'] = []
+        ret['workshops'] = []
+        ret['sales'] = []
+        ret['totals'] = {}
+        ret['inven'] = []
+        ret['entries'] = []
+        ret['entries_tras'] = []
+        ret['exits_tras'] = []
+        ret['tras_from'] = []
+        ret['tras_to'] = []
+        apps = pos_utils.get_installed_oposum_apps()
+        for branch in branches:
+            inventory = self.inventoryentry_set.filter(inv__enabled = False, 
+                                                       inv__branch = branch).order_by('date_time') 
+            if len(inventory) > 0:
+                inventory = inventory.last()
+                ret['inven'] += [dict(
+                    quantity = inventory.quantity,
+                    id = inventory.inv.id,
+                    branch = inventory.inv.branch.name,
+                    date_time = inventory.inv.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                    )]
+            else:
+                inventory = None
+            altas = ExistenceHistoryDetail.objects.filter(product = self, 
+                                                          existence__action = 'altas', 
+                                                          existence__branch = branch).order_by('existence__date_time')
+            if inventory is not None:
+                altas = altas.filter(existence__date_time__gte = inventory.date_time)
+            ret['entries'] += [dict(
+                    quantity = o.quantity,
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in entries]
+
+            altas_tras = ExistenceHistoryDetail.objects.filter(product = self,
+                                                               existence__action = 'alta_tras',
+                                                               existence__branch = branch).order_by('existence__date_time')
+            if inventory is not None:
+                altas_tras = altas_tras.filter(existence__date_time__gte = inventory.date_time)
+            ret['entries_tras'] += [dict(
+                    quantity = o.quantity,
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in altas_tras]
+
+            bajas = ExistenceHistoryDetail.objects.filter(product = self,
+                                                          existence__action = 'bajas',
+                                                          existence__branch = branch).order_by('existence__date_time')
+            if inventory is not None:
+                bajas = bajas.filter(existence__date_time__gte = inventory.date_time)
+            ret['exits'] += [dict(
+                    quantity = o.quantity,
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in bajas]
+
+            bajas_tras = ExistenceHistoryDetail.objects.filter(product = self,
+                                                               existence__action = 'baja_tras',
+                                                               existence__branch = branch).order_by('existence__date_time')
+            if inventory is not None:
+                bajas_tras = bajas_tras.filter(existence__date_time__gte = inventory.date_time)
+            ret['exits_tras'] += [dict(
+                    quantity = o.quantity,
+                    id = o.existence.id,
+                    branch = o.existence.branch.name,
+                    date_time = o.existence.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in bajas_tras]
+
+            sales = SaleDetails.objects.filter(product = self, 
+                                               sale__branch = branch, 
+                                               is_active = True).order_by('sale__date_time')
+            if inventory is not None:
+                sales = sales.filter(sale__date_time__gte = inventory.date_time)
+            ret['sales'] += [dict(
+                    branch = o.sale.branch.name,
+                    date_time = o.sale.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    quantity = o.quantity,
+                    folio_number = o.sale.folio_number
+                    ) for o in sales]
+
+            transfers_from = ProductTransferDetail.objects.filter(product = self, 
+                                                                  product_transfer__branch_from = branch).order_by('product_transfer__date_time')
+            if inventory is not None:
+                transfers_from = transfers_from.filter(product_transfer__date_time__gte = inventory.date_time)
+            ret['tras_from'] += [dict(
+                    quantity = o.quantity,
+                    id = o.product_transfer.id,
+                    branch = o.product_transfer.branch.name,
+                    date_time = o.product_transfer.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in transfers_from]
+
+            transfers_to = ProductTransferDetail.objects.filter(product = self, 
+                                                                product_transfer__bronch_to = branch).order_by('product_transfer__date_time')
+            if inventory is not None:
+                transfers_to = transfers_to.filter(product_transfer__date_time__gte = inventory.date_time)
+
+            ret['tras_to'] += [dict(
+                    quantity = o.quantity,
+                    id = o.product_transfer.id,
+                    branch = o.product_transfer.branch.name,
+                    date_time = o.product_transfer.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                    ) for o in transfers_to] 
+
+            if 'layaway' in apps:
+                from oPOSum.apps.layaway.models import LayawayProduct
+                layaways = LayawayProduct.objects.filter(prod = self, 
+                                                         layaway__is_active = True, 
+                                                         layaway__branch = branch).order_by('layaway__date_time')
+                if inventory is not None:
+                    layaways = layaways.filter(layaway__date_time__gte = inventory.date_time)
+                ret['layaway'] += [dict(
+                        quantity = o.qty,
+                        id = o.layaway.id,
+                        branch = o.layaway.branch.name,
+                        date_time = o.layaway.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                        ) for o in layaways]
+            
+            if 'workshop' in apps:
+                from oPOSum.apps.workshop.models import WorkshopProduct
+                workshop_tickets = WorkshopProduct.objects.filter(product = self, 
+                                                          ticket__is_active = True,
+                                                          ticket__branch = branch).order_by('ticket__date_time')
+                if inventory is not None:
+                    inventory = workshop_tickets.filter(ticket__date_time__gte = inventory.date_time)
+
+                ret['workshops'] += [dict(
+                    quantity = o.qty,
+                    id = o.ticket.id,
+                    branch = o.ticket.branch.name,
+                    date_time = o.date_time.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                    ) for o in workshop_tickets]
+
         inves = self.inventoryentry_set.filter(inv__enabled = False).order_by('inv').distinct('inv')
         inves = sorted(inves, key=lambda o: o.inv.date_time)
         invs = {}
@@ -272,6 +412,8 @@ class Product(models.Model):
         for b, t in totales.items():
             totales[b]['actual'] = t['inven'] + t['entries'] - t['exits'] - t['sales'] - t['layaways']
         ret['totals']['tot_branches'] = totales
+
+        logger.info('object: {0}'.format(json.dumps(ret, indent=4)))
         return ret
 
 '''
@@ -288,4 +430,142 @@ class ProductStatusHistory(models.Model):
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
     status_previous = models.TextField(_("Status Previous"), max_length = 255, blank=False, null=False)
     status_changed = models.TextField(_("Status Changed"), max_length = 255, blank=False, null=False)
+'''
+
+'''
+{
+    "layaways": [
+        {
+            "date_time": "2015-12-05 19:10:12",
+            "id": 870,
+            "branch": "Grande Campestre",
+            "quantity": 2
+        }
+    ],
+    "exits": [],
+    "workshops": [],
+    "sales": [
+        {
+            "date_time": "2015-11-28 18:35:05",
+            "folio_number": 437,
+            "branch": "Grande Campestre",
+            "quantity": 1
+        },
+        {
+            "date_time": "2015-06-28 11:18:53",
+            "folio_number": 2232,
+            "branch": "Ocho HIdalgo",
+            "quantity": 2
+        },
+        {
+            "date_time": "2015-07-17 13:49:36",
+            "folio_number": 4758,
+            "branch": "Ocho HIdalgo",
+            "quantity": 2
+        }
+    ],
+    "totals": {
+        "layaways": 2,
+        "exits": 0,
+        "tot_branches": {
+            "Once Hidalgo": {
+                "layaways": 0,
+                "actual": 2,
+                "exits": 0,
+                "sales": 0,
+                "inven": 2,
+                "entries": 0
+            },
+            "Grande Campestre": {
+                "layaways": 2,
+                "actual": 2,
+                "exits": 0,
+                "sales": 1,
+                "inven": 3,
+                "entries": 2
+            },
+            "HEB Lincoln": {
+                "layaways": 0,
+                "actual": 2,
+                "exits": 0,
+                "sales": 0,
+                "inven": 2,
+                "entries": 0
+            },
+            "Soriana Palmas": {
+                "layaways": 0,
+                "actual": 2,
+                "exits": 0,
+                "sales": 0,
+                "inven": 2,
+                "entries": 0
+            },
+            "Ocho HIdalgo": {
+                "layaways": 0,
+                "actual": 2,
+                "exits": 0,
+                "sales": 4,
+                "inven": 2,
+                "entries": 4
+            }
+        },
+        "workshops": 0,
+        "sales": 5,
+        "inven": 11,
+        "entries": 6,
+        "total": 12
+    },
+    "inven": [
+        {
+            "date_time": "2015-09-14 09:30:21",
+            "id": 12,
+            "branch": "Once Hidalgo",
+            "quantity": 2
+        },
+        {
+            "date_time": "2015-08-24 08:45:20",
+            "id": 10,
+            "branch": "HEB Lincoln",
+            "quantity": 2
+        },
+        {
+            "date_time": "2015-09-08 09:04:59",
+            "id": 11,
+            "branch": "Soriana Palmas",
+            "quantity": 2
+        },
+        {
+            "date_time": "2015-09-22 16:21:35",
+            "id": 14,
+            "branch": "Grande Campestre",
+            "quantity": 3
+        },
+        {
+            "date_time": "2015-03-23 08:23:40",
+            "id": 6,
+            "branch": "Ocho HIdalgo",
+            "quantity": 2
+        }
+    ],
+    "entries": [
+        {
+            "date_time": "2015-11-18 17:29:33",
+            "id": 1483,
+            "branch": "Grande Campestre",
+            "quantity": 2
+        },
+        {
+            "date_time": "2015-07-03 15:50:33",
+            "id": 488,
+            "branch": "Ocho HIdalgo",
+            "quantity": 3
+        },
+        {
+            "date_time": "2015-07-23 11:26:14",
+            "id": 558,
+            "branch": "Ocho HIdalgo",
+            "quantity": 1
+        }
+    ]
+}
 '''

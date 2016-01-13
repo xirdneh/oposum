@@ -61,6 +61,7 @@ class Sale(models.Model):
     payment_amount = models.DecimalField(_("Payment Amount"), max_digits = 10, decimal_places=2)
     extra = models.CharField(_("Extra"), max_length=1024, blank=True, null=True)
     folio_number = models.PositiveIntegerField(_("Folio Number"))
+    is_active = models.BooleanField(_("Is Active"), default = True)
     objects = SaleManager()
 
     def __unicode__(self):

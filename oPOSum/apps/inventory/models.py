@@ -60,6 +60,12 @@ class ExistenceHistoryDetail(models.Model):
             quantity = self.quantity
         )        
 
+class InventoryManger(models.Manager):
+
+    def get_branch_latest_inventory(self, branch):
+        i = super(InventoryManger, self).get_query_set().filter(branch = branch, enabled = False).order_by('date_time').last()
+        return i
+    
 class InventoryFolio(models.Model):
     name = models.CharField(_("Name"), max_length=255)
     value = models.PositiveIntegerField(_("Value"))
