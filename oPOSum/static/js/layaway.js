@@ -46,7 +46,11 @@ if(add_layway_btn){
                 "<input disabled class='form-control' name='layaway-change' id='layaway-change' type='number' step='0.1'/>" +
             "</div>";
             modal_body.html(body);
-            $("#mensaje-aceptar").text("Guardar");
+            var btn_aceptar = $('<button type="submit" id="mensaje-aceptar" class="btn btn-primary">Guardar</button>');
+            var footer_form = $('<form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form"></form>');
+            footer_form.append(btn_aceptar);
+            modal.find('.modal-footer form').remove();
+            modal.find('.modal-footer').append(footer_form);
             var pi = modal_body.find("#product_code");
             pi.focus();
             balco.print_branches_selector("user_branch", balco.user_branches);
@@ -68,7 +72,7 @@ if(add_layway_btn){
                     $("#mensaje-aceptar").focus();
                 }
             });
-            $("#mensaje-aceptar").one('click', function(e){
+            btn_aceptar.one('click', function(e){
                 e.preventDefault();
                 data = get_table_data($("#layaway-prods"), ["id", "code", "desc", "qty", "retail_price"]);
                 if(console){
@@ -96,7 +100,7 @@ function check_layaway_form(){
         $("#layaway-form-msg").text(txt + ". No has agregado ningun articulo");
         return false;
     }
-    if($("#layaway-payment").val() == "" || $("#layaway-payment").val() == "0"){
+    if($("#layaway-payment").val() === "" || $("#layaway-payment").val() == "0"){
         $("#layaway-form-msg").text(txt + ". No se ha especificado un abono");
         return false;
     }
@@ -451,52 +455,60 @@ if(add_payment){
         var modal = $("#mensaje");
         var modal_body = modal.find("#mensaje-body");
         var modal_title = modal.find("#mensaje-title");
-        modal_title.text("Abono");
-        var body = "<div class='layaway-pay-form'>" +
-                "<div id=\"layaway-form-msg\"></div>" +
-                "<div id=\"user_branch\"></div>" +
-                "<p><b>Saldo Pendiente: </b> " + ldebt + "</p>" +
-                "<h3> Primer abono de Separado </h3>" + 
-                "<label for=\"layaway-payment-type\">Tipo de Pago</label>" +
-                "<select name=\"layaway-payment-type\" id=\"layaway-payment-type\">" +
-                    "<option name=\"cash\" value=\"Cash\">Efectivo</option>"  +
-                    "<option name=\"credit\" value=\"Credit\">Credito</option>" + 
-                    "<option name=\"cheque\" value=\"Check\">Cheque</option>" + 
-                    "<option name=\"layaway voucher\" value=\"Layaway Voucher\">Vale Separado</option>" + 
-                    "<option name=\"sale voucher\" value=\"Sale Voucher\">Vale Venta</option>" + 
-                "</select><br />" + 
-                "<label for=\"layaway-payment\">Monto a Pagar:</label>" +
-                "<input class='form-control' name='layaway-payment' id='layaway-payment' type='number' step='0.1'/>" +
-                "<label for=\"layaway-pay\">Pago:</label>" +
-                "<input class='form-control' name='layaway-pay' id='layaway-pay' type='number' step='0.1'/>" +
-                "<label for=\"layaway-change\">Cambio: </label>" +
-                "<input disabled class='form-control' name='layaway-change' id='layaway-change' type='number' step='0.1'/>" +
-            "</div>";
-       modal_body.html(body);
-       balco.print_branches_selector("user_branch", balco.user_branches);
-       balco.select_init_branch("select_branches", balco.user_branch_selected);
-       $("#layaway-payment").keyup(function(event){
-                var e = $(this).val();
-                $("#layaway-pay").val(e);
-                if(event.which == 13 ){
-                    $("#layaway-pay").focus();
-                    $("#layaway-pay").select();
-                }
-            });
-            $("#layaway-pay").keyup(function(e){
-                var el = $(this);
-                var pm = $("#layaway-payment").val();
-                $("#layaway-change").val(+parseFloat(el.val()) - +parseFloat(pm));
-                if(e.which == 13){
-                    $("#mensaje-aceptar").focus();
-                }
-            });
-       $("#mensaje-aceptar").one('click', function(e){
-            e.preventDefault();
-            $("#mensaje input, #mensaje button, #mensaje select").prop('disabled', true);
-           if(check_layaway_payment(ldebt)){
-               save_payment(lid, ldebt, ltot, $("#layaway-payment").val());
-           }
+        modal.one('show.bs.modal', function(event){
+            modal_title.text("Abono");
+            var body = "<div class='layaway-pay-form'>" +
+                    "<div id=\"layaway-form-msg\"></div>" +
+                    "<div id=\"user_branch\"></div>" +
+                    "<p><b>Saldo Pendiente: </b> " + ldebt + "</p>" +
+                    "<h3> Primer abono de Separado </h3>" + 
+                    "<label for=\"layaway-payment-type\">Tipo de Pago</label>" +
+                    "<select name=\"layaway-payment-type\" id=\"layaway-payment-type\">" +
+                        "<option name=\"cash\" value=\"Cash\">Efectivo</option>"  +
+                        "<option name=\"credit\" value=\"Credit\">Credito</option>" + 
+                        "<option name=\"cheque\" value=\"Check\">Cheque</option>" + 
+                        "<option name=\"layaway voucher\" value=\"Layaway Voucher\">Vale Separado</option>" + 
+                        "<option name=\"sale voucher\" value=\"Sale Voucher\">Vale Venta</option>" + 
+                    "</select><br />" + 
+                    "<label for=\"layaway-payment\">Monto a Pagar:</label>" +
+                    "<input class='form-control' name='layaway-payment' id='layaway-payment' type='number' step='0.1'/>" +
+                    "<label for=\"layaway-pay\">Pago:</label>" +
+                    "<input class='form-control' name='layaway-pay' id='layaway-pay' type='number' step='0.1'/>" +
+                    "<label for=\"layaway-change\">Cambio: </label>" +
+                    "<input disabled class='form-control' name='layaway-change' id='layaway-change' type='number' step='0.1'/>" +
+                "</div>";
+           modal_body.html(body);
+           var btn_aceptar = $('<button type="submit" id="mensaje-aceptar" class="btn btn-primary">Guardar</button>');
+           var footer_form = $('<form action="" method="post" id="mensaje-aceptar-form" name="mensaje-aceptar-form"></form>');
+           footer_form.append(btn_aceptar);
+           modal.find('.modal-footer form').remove();
+           modal.find('.modal-footer').append(footer_form);
+
+           balco.print_branches_selector("user_branch", balco.user_branches);
+           balco.select_init_branch("select_branches", balco.user_branch_selected);
+           $("#layaway-payment").keyup(function(event){
+                    var e = $(this).val();
+                    $("#layaway-pay").val(e);
+                    if(event.which == 13 ){
+                        $("#layaway-pay").focus();
+                        $("#layaway-pay").select();
+                    }
+                });
+                $("#layaway-pay").keyup(function(e){
+                    var el = $(this);
+                    var pm = $("#layaway-payment").val();
+                    $("#layaway-change").val(+parseFloat(el.val()) - +parseFloat(pm));
+                    if(e.which == 13){
+                        $("#mensaje-aceptar").focus();
+                    }
+                });
+           btn_aceptar.one('click', function(e){
+                e.preventDefault();
+                $("#mensaje input, #mensaje button, #mensaje select").prop('disabled', true);
+               if(check_layaway_payment(ldebt)){
+                   save_payment(lid, ldebt, ltot, $("#layaway-payment").val());
+               }
+           });
        });
        modal.modal('show');
     });

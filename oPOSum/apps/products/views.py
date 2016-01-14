@@ -233,7 +233,15 @@ def show_transactions(request, slug):
 @login_required
 def search(request):
     q = request.GET['q']
-    ps = Product.objects.filter(Q(slug__icontains=q) | Q(name__icontains=q))
-    
-    return render_to_response('products/search.html', { 'products' : ps}, context_instance=RequestContext(request))
+    ps = Product.objects.filter(Q(slug__icontains=q) | Q(name__icontains=q)).order_by('slug')
+    ret = []
+    for p in ps:
+        ret.append({
+            'slug': p.slug,
+            'name': p.name,
+            'description': p.description,
+            'existence': p.get_transactions_count()
+        })
+    ret = sorted(ret, key=lambda o: o['existence'], reverse=True)
+    return render_to_response('products/search.html', { 'products' : ret}, context_instance=RequestContext(request))
 

@@ -8,13 +8,15 @@
         <tr>
             <th>Producto</th>
             <th>Descripcion</th>
+            <th>Existencia</th>
         </tr>
     </thead>
     <tbody>
         {% for p in products %}
-            <tr>
+            <tr {% if p.existence > 0 %} class="success" {% endif %}>
                 <td><a href="/products/show-transactions/{{p.slug}}">{{p.name}}</a></td>
                 <td>{{p.description}}</td>
+                <td>{{p.existence}}</td>
             </tr>
         {% endfor %}
     </tbody>

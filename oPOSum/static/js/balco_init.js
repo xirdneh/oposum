@@ -56,6 +56,8 @@ if (typeof balco == 'undefined'){
 
    balco.search = function(event){
         event.preventDefault();
+        $('.main_container').prepend('<div class="success_message"><span class="glyphicon glyphicon-refresh spinning-icon" ></span> Buscando producto...</div>');
+        $('body').scrollTop(0);
         $.ajax({
             type:"get",
             url: "/products/get-product/" + $(this['q']).val(),

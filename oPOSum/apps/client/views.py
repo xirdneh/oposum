@@ -80,7 +80,7 @@ def search(request):
                 fnq |= Q(first_name__icontains=i)
                 lnq |= Q(last_name__icontains=i)
                 eq |= Q(email__icontains=q[-1])
-            clients = Client.objects.filter(pnq | idnq | fnq | lnq | eq)
+            clients = Client.objects.filter(pnq | idnq | fnq | lnq | eq).order_by('first_name', 'last_name')
         else:
             clients = Client.objects.filter(
                 Q(id_number__icontains = q) | 
@@ -88,6 +88,6 @@ def search(request):
                 Q(first_name__icontains = q) |
                 Q(last_name__icontains = q) |
                 Q(email__icontains = q)
-                )
+                ).order_by('first_name', 'last_name')
         return render_to_response('clients/search.html',{'clients': clients}, context_instance=RequestContext(request))
     return render_to_response('clients/search.html',context_instance=RequestContext(request))

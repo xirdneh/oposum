@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from oPOSum.apps.inventory.models import ExistenceHistory, ExistenceHistoryDetail, ProductTransfer, ProductTransferDetail
 from oPOSum.apps.pos.models import Sale, SaleDetails
+from oPOSum.apps.layaway.models import LayawayProduct
 from oPOSum.apps.branches.models import Branch
 from oPOSum.libs import utils as pos_utils
 from decimal import *
@@ -107,6 +108,13 @@ class Product(models.Model):
             retail_price = self.regular_price
         return retail_price
 
+    def get_transactions_count(self):
+        total = 0
+        branches = Branch.objects.all()
+        for branch in branches:
+            total += self.get_branch_transactions_count(branch)
+        return total
+
     def get_branch_transactions_count(self, branch):
         inves = self.inventoryentry_set.filter(inv__branch = branch, inv__enabled = False).order_by('-date_time')
         utc = pytz.timezone('UTC')
@@ -118,17 +126,29 @@ class Product(models.Model):
             dtu = datetime.utcnow()
             dt = dtu - relativedelta(years = 100)
         dt = dt.replace(tzinfo = utc)
-        ehds_positive = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas')
-        ehds_negative = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas')
-        sales = self.saledetails_set.filter(sale__branch = branch, sale__date_time__gte = dt)
+        altas = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas')
+        altas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas_tras')
+        bajas = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas')
+        bajas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas_tras')
+        sales = self.saledetails_set.filter(sale__branch = branch, sale__date_time__gte = dt, sale__is_active = True)
+
+
+        layaways = LayawayProduct.objects.filter(prod = self, 
+                                                         layaway__is_active = True, 
+                                                         layaway__branch = branch,
+                                                         layaway__date_time__gte = dt)
+
         if pinv is not None:
             r_inv = pinv.quantity
         else:
             r_inv = 0
-        r_positive = reduce(lambda x, y: x + y.quantity, ehds_positive, 0)
-        r_negative = reduce(lambda x, y: x + y.quantity, ehds_negative, 0)
+        r_altas = reduce(lambda x, y: x + y.quantity, altas, 0)
+        r_altas_tras = reduce(lambda x, y: x + y.quantity, altas_tras, 0)
+        r_bajas = reduce(lambda x, y: x + y.quantity, bajas, 0)
+        r_bajas_tras = reduce(lambda x, y: x + y.quantity, bajas_tras, 0)
         r_sales = reduce(lambda x, y: x + y.quantity, sales, 0)
-        return r_inv + r_positive - r_negative - r_sales
+        r_layaways = reduce(lambda x, y: x + y.qty, layaways, 0)
+        return r_inv + r_altas + r_altas_tras - r_bajas - r_bajas_tras - r_sales - r_layaways
 
     def get_transactions(self):
         branches = Branch.objects.all()
@@ -408,140 +428,3 @@ class Product(models.Model):
         return ret
 
 
-'''
-{
-    "layaways": [
-        {
-            "date_time": "2015-12-05 19:10:12",
-            "id": 870,
-            "branch": "Grande Campestre",
-            "quantity": 2
-        }
-    ],
-    "exits": [],
-    "workshops": [],
-    "sales": [
-        {
-            "date_time": "2015-11-28 18:35:05",
-            "folio_number": 437,
-            "branch": "Grande Campestre",
-            "quantity": 1
-        },
-        {
-            "date_time": "2015-06-28 11:18:53",
-            "folio_number": 2232,
-            "branch": "Ocho HIdalgo",
-            "quantity": 2
-        },
-        {
-            "date_time": "2015-07-17 13:49:36",
-            "folio_number": 4758,
-            "branch": "Ocho HIdalgo",
-            "quantity": 2
-        }
-    ],
-    "totals": {
-        "layaways": 2,
-        "exits": 0,
-        "tot_branches": {
-            "Once Hidalgo": {
-                "layaways": 0,
-                "actual": 2,
-                "exits": 0,
-                "sales": 0,
-                "inven": 2,
-                "entries": 0
-            },
-            "Grande Campestre": {
-                "layaways": 2,
-                "actual": 2,
-                "exits": 0,
-                "sales": 1,
-                "inven": 3,
-                "entries": 2
-            },
-            "HEB Lincoln": {
-                "layaways": 0,
-                "actual": 2,
-                "exits": 0,
-                "sales": 0,
-                "inven": 2,
-                "entries": 0
-            },
-            "Soriana Palmas": {
-                "layaways": 0,
-                "actual": 2,
-                "exits": 0,
-                "sales": 0,
-                "inven": 2,
-                "entries": 0
-            },
-            "Ocho HIdalgo": {
-                "layaways": 0,
-                "actual": 2,
-                "exits": 0,
-                "sales": 4,
-                "inven": 2,
-                "entries": 4
-            }
-        },
-        "workshops": 0,
-        "sales": 5,
-        "inven": 11,
-        "entries": 6,
-        "total": 12
-    },
-    "inven": [
-        {
-            "date_time": "2015-09-14 09:30:21",
-            "id": 12,
-            "branch": "Once Hidalgo",
-            "quantity": 2
-        },
-        {
-            "date_time": "2015-08-24 08:45:20",
-            "id": 10,
-            "branch": "HEB Lincoln",
-            "quantity": 2
-        },
-        {
-            "date_time": "2015-09-08 09:04:59",
-            "id": 11,
-            "branch": "Soriana Palmas",
-            "quantity": 2
-        },
-        {
-            "date_time": "2015-09-22 16:21:35",
-            "id": 14,
-            "branch": "Grande Campestre",
-            "quantity": 3
-        },
-        {
-            "date_time": "2015-03-23 08:23:40",
-            "id": 6,
-            "branch": "Ocho HIdalgo",
-            "quantity": 2
-        }
-    ],
-    "entries": [
-        {
-            "date_time": "2015-11-18 17:29:33",
-            "id": 1483,
-            "branch": "Grande Campestre",
-            "quantity": 2
-        },
-        {
-            "date_time": "2015-07-03 15:50:33",
-            "id": 488,
-            "branch": "Ocho HIdalgo",
-            "quantity": 3
-        },
-        {
-            "date_time": "2015-07-23 11:26:14",
-            "id": 558,
-            "branch": "Ocho HIdalgo",
-            "quantity": 1
-        }
-    ]
-}
-'''
