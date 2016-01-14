@@ -102,6 +102,19 @@ if (typeof balco == 'undefined'){
            }
        });
    };
+
+   balco.convertToDate = function(dateTime){
+       dateTimeArr = dateTime.split(' ');
+       if (dateTimeArr.length !== 2){
+           console.log('Wrong date format: ', dateTimeArr.length);
+           return '';
+       }
+       date = dateTimeArr[0];
+       time = dateTimeArr[1];
+       dateArr = date.split('-');
+       timeArr = time.split(':');
+       return new Date(dateArr[0], +dateArr[1] - 1, dateArr[2], timeArr[0], timeArr[1], timeArr[2]);
+   };
 }
 (function($){
     $(".navbar .search-box form").submit(balco.search);

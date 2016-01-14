@@ -324,6 +324,7 @@ function save_layaway(data){
 }
 
 function print_layaway_ticket(data){
+    console.log('Printing layaway: ', data);
     var $now;
     var layaway = data.layaway;
     var payment = data.payment;
@@ -343,7 +344,9 @@ function print_layaway_ticket(data){
         print = !notReady();
     }
     if(print){
-        $now = new Date(data.layaway.date_time);
+        $now = balco.convertToDate(data.layaway.date_time);
+        console.log('data.layaway.date_time: ', data.layaway.date_time);
+        console.log('$now: ', $now);
         tb += data.branch.ticket_pre;
         tb += "\n\r";
         if(!$now){
@@ -595,10 +598,12 @@ function save_payment(lid, ldebt, ltot, payment){
 }
 
 function print_payment_ticket(data){
-    var $now;
+    console.log('Printing payment tickiet: ', data);
     var payment = data.payment;
     var layaway = data.layaway;
-    var $now = new Date(payment.date_time);
+    console.log('payment.date_time: ', payment.date_time);
+    var $now = balco.convertToDate(payment.date_time);
+    console.log('$now: ', $now);
     var $amt_to_pay = $("#layaway-payment").val();
     var $pay = $("#layaway-pay").val();
     var $pay_type = $("#layaway-type").val();

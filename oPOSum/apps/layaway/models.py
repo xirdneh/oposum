@@ -91,10 +91,10 @@ class Layaway(models.Model):
             products = [{'product': p.prod.as_json(),
                          'qty': p.qty, 'price': str(p.price)} for p in self.layawayproduct_set.all()],
             user = self.user.username,
-            date_time = dt.strftime('%d/%m/%y %H:%M:%S'),
+            date_time = dt.strftime('%Y-%m-%d %H:%M:%S'),
             amount_to_pay = "${0:.2f}=".format(self.amount_to_pay),
             total_debt_amount = "${0:.2f}=".format(self.get_debt_amount()),
-            date_end = self.get_date_end().strftime('%d/%m/%y %H:%M:%S'),
+            date_end = self.get_date_end().strftime('%Y-%m-%d %H:%M:%S'),
             type = self.type
             )
 
@@ -136,6 +136,6 @@ class LayawayHistory(models.Model):
             branch = self.branch.slug,
             user = self.user.username,
             amount = "${0:.2f}=".format(self.amount),
-            date_time = dt.strftime('%d/%m/%Y %H:%M:%S'),
+            date_time = dt.strftime('%Y-%m-%d %H:%M:%S'),
             payment_type = self.payment_type
         )

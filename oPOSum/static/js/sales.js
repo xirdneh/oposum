@@ -195,7 +195,8 @@ $mrs.click(function(e){
                     if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} ";}else{tb+= "\n\r";}
                     for (var i = 0; i < d.sales.length; i++){
                         var $sale = d.sales[i];
-                        tb += $sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method + "\n\r";
+                        tb += $sale.folio_number + " " + $sale.total_amount + " " + $sale.payment_method;
+                        if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} ";}else{tb+="\n\r";}
                         $total += parseFloat($sale.total_amount);
                         if(!$totales[$sale.payment_method]){
                             $totales[$sale.payment_method] = parseFloat($sale.total_amount);
@@ -357,15 +358,6 @@ $("#btn_pagar").click(function(e){
 $("#save_ticket").submit(function(e){
     e.preventDefault();
     var $now;
-    $.ajax({
-        dataType:"jsonp",
-        url:"//www.timeapi.org/utc/now.json",
-        success:function(d){
-                var $utc = new Date(d.dateString);
-                $now = new Date(d.dateString);
-                $now.setHours($utc.getHours() - 5);
-            }
-    });
     $("#nota_btn_imprimir").prop("disabled", true);
     var $td = JSON.stringify(dataView.getItems());
     var $cp = $("#nota_pago").val();
@@ -392,6 +384,7 @@ $("#save_ticket").submit(function(e){
             console.log(errorThrown);
         }
     }).done(function(data){
+            $now = balco.convertToDate(data.sale.date_time);
             var $folio = data.folio;
             var $total = 0;
             var print = false;

@@ -170,13 +170,11 @@ class Product(models.Model):
         apps = pos_utils.get_installed_oposum_apps()
         for branch in branches:
             qty = 0
-            logger.info('Branch: {0}'.format(branch.name))
             if branch.name not in ret['totals']['tot_branches']:
                 ret['totals']['tot_branches'][branch.name] = {}
                 ret['totals']['tot_branches'][branch.name]['slug'] = branch.slug
             inventory = self.inventoryentry_set.filter(inv__enabled = False, 
                                                        inv__branch = branch).order_by('date_time') 
-            logger.info('Inventory: {0}'.format(len(inventory)))
             if len(inventory) > 0:
                 inventory = inventory.last()
                 if inventory.quantity > 0:
@@ -209,10 +207,8 @@ class Product(models.Model):
             altas = ExistenceHistoryDetail.objects.filter(product = self, 
                                                           existence__action = 'altas', 
                                                           existence__branch = branch).order_by('existence__date_time')
-            logger.info('Entries: {0}'.format(len(altas)))
             if inventory is not None:
                 altas = altas.filter(existence__date_time__gte = inventory.date_time)
-            logger.info('Entries date: {0}'.format(len(altas)))
             b_entries = [dict(
                     quantity = o.quantity,
                     id = o.existence.id,
@@ -423,8 +419,4 @@ class Product(models.Model):
             ret['totals']['tot_branches'][branch.name]['actual'] = b_actual
             ret['totals']['total'] += b_actual
 
-            #logger.info('======================================================')
-            #logger.info('object: {0}'.format(json.dumps(ret, indent=4)))
         return ret
-
-
