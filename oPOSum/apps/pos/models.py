@@ -5,6 +5,7 @@ from oPOSum.apps.branches.models import Branch
 from django.contrib.auth.models import User
 from decimal import Decimal
 import logging, traceback
+import pytz
 logger = logging.getLogger(__name__)
 
 # Create your models here.
@@ -14,15 +15,19 @@ class SaleManager(models.Manager):
         return sales
 
     def get_sales_structure(self, branch, datestart, dateend):
+        logger.info('datestart: {0}'.format(datestart))
+        logger.info('dateend: {0}'.format(dateend))
         sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        tz = pytz.timezone('America/Monterrey')
         ret = {}
         date = None
-        #logger.debug("total sales: {0}".format(len(sales)))
+        local_date = None
         total = Decimal(0)
         for s in sales:
-            if date != s.date_time.date():
+            local_date = s.date_time.date().astimezone(tz)
+            if date != local_date:
                 total = Decimal(0)
-                date = s.date_time.date()
+                date = local_date
                 date_s = date.strftime("%Y-%m-%d")
                 ret[date_s] = {}
                 ret[date_s]["all_sales"] = []
