@@ -1,7 +1,50 @@
 {% extends "base.html" %}
 {% load sekizai_tags %}
 {% block main_content %}
-    <h1> Ventas del {{datestart}} al {{dateend}}</h1>
+    <h2> Resumen de ventas de {{branch}}</h2>
+    <li> Del folio #{{folio_start}} al #{{folio_end}}</li>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Clasificaci&oacute;n</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, val in totales.items %}
+                <tr><td colspan="2">{{key}}</td><tr>
+                {% for type, obj in val.items %}
+                    <tr>
+                        <td><a href="" data-toggle="#{{key}}-{{type}}" class="toggler">{{type}}</a></td>
+                        <td>{{obj.total}}</td>
+                    </tr>
+                    <tr id = "{{key}}-{{type}}" class="hidden">
+                        <td colspan="2">
+                            <table class="balco-table">
+                                <thead>
+                                    <th>Clave</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Folio Venta</th>
+                                </thead>
+                                <tbody>
+                                    {% for sd in obj.sd %}
+                                        <tr>
+                                            <td><a href="/products/add-products/{{sd.sd.product.name}}">{{sd.sd.product.name}}</a></td>
+                                            <td>{{sd.sd.quantity}}</td>
+                                            <td>{{sd.sd.over_price}}</td>
+                                            <td><a href="#{{sd.sale.folio_number}}">{{sd.sale.folio_number}}</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        <td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2> Ventas del {{datestart}} al {{dateend}}</h2>
     <table class="sales-summary-table balco-table">
     <thead>
         <tr>
@@ -27,7 +70,7 @@
             </thead>
             <tbody>
             {% for salesum in salesdet.all_sales%}
-                <tr>
+                <tr id="{{salesum.sale.folio_number}}">
                     <td>{{salesum.sale.folio_number}}</td>
                     <td>{{salesum.sale.payment_method}}</td>
                     <td>{{salesum.sale.total_amount}}</td>
@@ -41,13 +84,15 @@
                                 <th>C&oacute;digo</th>
                                 <th>Descripci&iacute;on</th>
                                 <th>Cantidad</th>
+                                <th>Precio</th>
                             </tr>
                         </thead>
                         {% for sale in salesum.sales %}
                             <tr>
-                                <td>{{sale.product.name}}</td>
+                                <td><a href="/products/add-products/{{sale.product.name}}">{{sale.product.name}}</a></td>
                                 <td>{{sale.product.description}}</td>
                                 <td>{{sale.quantity}}</td>
+                                <td>{{sale.over_price}}</td>
                             </tr>
                         {% endfor %}
                         </table>
@@ -62,6 +107,7 @@
     {% endfor %}
     </tbody>
     </table>
+
 {% addtoblock "js" %}
     <script type="text/javascript" src="{{STATIC_URL}}js/sales_report.js"></script>
 {% endaddtoblock %}

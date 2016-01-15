@@ -178,7 +178,7 @@ def __get_full_product(slug):
         initial= { 
            'slug': p.slug,
            'provider': p.provider ,
-           'category': [c.id for c in p.category_set.all()],
+           'category': [c.id for c in p.category.all()],
            'line': p.line,
            'regular_price': p.regular_price,
            'equivalency': p.equivalency ,

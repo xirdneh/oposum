@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 import logging, traceback
 import pytz
+import json
+from collections import OrderedDict
 logger = logging.getLogger(__name__)
 
 # Create your models here.
@@ -15,24 +17,20 @@ class SaleManager(models.Manager):
         return sales
 
     def get_sales_structure(self, branch, datestart, dateend):
-        logger.info('datestart: {0}'.format(datestart))
-        logger.info('dateend: {0}'.format(dateend))
         sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
         tz = pytz.timezone('America/Monterrey')
         ret = {}
         date = None
         local_date = None
         total = Decimal(0)
+        totales = {}
         for s in sales:
-            local_date = s.date_time.date().astimezone(tz)
-            if date != local_date:
-                total = Decimal(0)
-                date = local_date
-                date_s = date.strftime("%Y-%m-%d")
+            date = s.date_time.date()
+            local_date = s.date_time.astimezone(tz)
+            date_s = local_date.strftime("%Y-%m-%d")
+            if date_s not in ret:
                 ret[date_s] = {}
-                ret[date_s]["all_sales"] = []
-            else:
-                date_s = date.strftime("%Y-%m-%d")
+                ret[date_s]['all_sales'] = []
             #logger.debug("dt: {0}".format(date_s))
             ret[date_s]["all_sales"].append({})
             ret[date_s]["all_sales"][-1]["sale"] = s
@@ -41,13 +39,63 @@ class SaleManager(models.Manager):
             #logger.debug("sale: {0}".format(s))
             total += Decimal(s.total_amount)
             sds = SaleDetails.objects.filter(sale = s)
+            key = ''
             for sd in sds:
-                logging.debug("sale details: {0}".format(sd))
                 ret[date_s]["all_sales"][-1]["sales"].append(sd)
+                bodega = sd.product.get_category('bodega')
+                if not bodega:
+                    bodega = ''
+                else:
+                    bodega = bodega.slug
+               
+                area = sd.product.get_category('area')
+                if not area:
+                    area = ''
+                else:
+                    area = area.slug
+                
+                linea = sd.product.get_category('linea')
+                if not linea:
+                    linea = ''
+                else:
+                    linea = linea.slug
+                code = sd.product.name.split('-')
+                if len(code) >= 2:
+                    letter = code[1][:1].lower()
+                else:
+                    letter = ''
+                if sd.product.slug[:2] == '17':
+                    key = 'Relojes'
+                elif bodega == '6' or letter == 'c':
+                    key = 'Chapa'
+                elif area == 'A' or letter == 'a':
+                    key = 'Acero'
+                elif letter == 'b':
+                    key = 'Bisuteria'
+                elif bodega in ['1', '2', '3', '5', '7', '8'] or letter in ['1', '2']:
+                    key = 'Oro'
+                elif bodega == '16' or letter == 'p':
+                    key = 'Plata'
+                else:
+                    if '-DESC' not in sd.product.name:
+                        key = 'Taller'
+
+                if date_s not in totales:
+                    totales[date_s] = {}
+                if key not in totales[date_s]:
+                    totales[date_s][key] = {}
+                    totales[date_s][key]['total'] = Decimal(0)
+                    totales[date_s][key]['sd'] = []
+                if key != '':
+                    totales[date_s][key]['sd'].append({'sd': sd, 'sale':s.as_json()})
+                    totales[date_s][key]['total'] += Decimal(sd.over_price) * Decimal(sd.quantity)
+
             ret[date_s]["total"] = str(total)
         #ret = [sale.as_json() for sale in sales]
-        logger.debug("ret {0}".format(ret))
-        return ret
+        return {'sales': OrderedDict(sorted(ret.items()), key=lambda t:t[0]), 
+                'totales': OrderedDict(sorted(totales.items()), key=lambda t:t[0]), 
+                'folio_start': sales.first().folio_number, 
+                'folio_end': sales.last().folio_number}
 
     def get_sales_json(self, branch, datestart, dateend):
         sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')

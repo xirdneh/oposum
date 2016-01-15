@@ -100,6 +100,13 @@ class Product(models.Model):
         cats = self.category.all().filter(slug = cslug, type = ctype)
         return len(cats) > 0
 
+    def get_category(self, ctype):
+        cat = self.category.all().filter(type = ctype)
+        if len(cat) > 0:
+            return cat[0]
+        else:
+            return False
+
     def get_retail_price(self):
         retail_price = Decimal(0.0)
         if self.regular_price == Decimal('0.00') and self.line is not None:
