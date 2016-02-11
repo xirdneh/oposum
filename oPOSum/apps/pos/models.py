@@ -17,7 +17,7 @@ class SaleManager(models.Manager):
         return sales
 
     def get_sales_structure(self, branch, datestart, dateend):
-        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = True).order_by('date_time')
         tz = pytz.timezone('America/Monterrey')
         ret = {}
         date = None

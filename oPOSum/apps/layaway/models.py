@@ -34,6 +34,8 @@ class LayawayManager(models.Manager):
     def get_layaways(self, branch, datestart, dateend):
         layaways = super(LayawayManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
 
+
+
 class Layaway(models.Model):
     ONE_MONTH = 30
     TWO_MONTHS = 60
@@ -117,6 +119,35 @@ class LayawayHistoryManager(models.Manager):
                 'layaway': p.layaway.as_json()}
                 for p in payments]
         return ret
+
+class LayawayHistoryManager(modles.Manager):
+    
+    def get_layaways_structure(self, branch, datestart, dateend):
+        layaways = super(LayawayManager, self).get_query_set().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = False).order_by('date_time')
+        tz = pytz.timezone('America/Monterrey')
+        ret = {}
+        date = None
+        local_date = None
+        total = Decimal()
+        totales = {}
+        for l in layaways:
+            if l.get_debt_amount() > Decimal(0):
+                next
+            date = l.date_time.date()
+            local_date = l.date_time.astimezone(tz)
+            date_l = local_date.strftime('%Y-%m-%d')
+            if date_l not in ret:
+                ret[date_l] = {}
+                ret[date_l]['all_layaways'] = []
+            ret[date_l]['all_layaways'].append({})
+            ret[date_l]['all_layaways'][-1]['layaway'] = s
+            ret[date_l]['all_layaways'][-1]['layaways'] = []
+
+            total += Decimal(l.total_amount)
+            sds = LayawayHistory.objects.filter(sale = l)
+            key = ''
+            for lh in lhs:
+                ret[date_l['all_layaways'][-1]['sales'].apend(lh)
 
 class LayawayHistory(models.Model):
     branch = models.ForeignKey(Branch)
