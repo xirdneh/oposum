@@ -138,26 +138,10 @@ def get_discounts(p):
     dt = dt.astimezone(tz)
     desc = False
     slug = False
-    if( datetime(2015, 12, 1, 0, 0, 0, 0, tz) <= dt and
-        datetime(2015, 12, 31, 23, 59, 0, 0, tz) >= dt ):
-        if (p.provider.sku == 'BE'):
-            slug = 'DICDESC70'
-        elif p.provider.sku == 'HW':
+    if( datetime(2016, 2, 1, 0, 0, 0, 0, tz) <= dt and
+        datetime(2016, 2, 29, 23, 59, 0, 0, tz) >= dt ):
+        if (p.provider.sku == '81' or p.prodiver.sku == '91'):
             slug = 'DICDESC50'
-        elif p.provider.sku == '81' or p.provider.sku == '91':
-            slug = 'DICDESC50'
-        elif p.provider.sku == 'SE' and p.has_category('linea', '14'):
-            slug = 'DICDESC50'
-        elif p.has_category('area', 'ACERO'):
-            slug = 'DICDESC20'
-        elif p.provider.sku == 'AR':
-            slug = 'DICDESC50'
-        elif p.provider.sku == 'SP':
-            slug = 'DICDESC10'
-        elif p.provider.sku == 'HO':
-            slug = 'DICDESC20'
-        elif p.provider.sku == 'DR':
-            slug = 'DICDESC70'
         if slug:
             desc = Product.objects.get(slug = slug)
         return desc

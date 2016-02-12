@@ -134,9 +134,9 @@ class Product(models.Model):
             dt = dtu - relativedelta(years = 100)
         dt = dt.replace(tzinfo = utc)
         altas = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas')
-        altas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'altas_tras')
+        altas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'alta_tras')
         bajas = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas')
-        bajas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'bajas_tras')
+        bajas_tras = self.existencehistorydetail_set.filter(existence__branch = branch, existence__date_time__gte = dt, existence__action = 'baja_tras')
         sales = self.saledetails_set.filter(sale__branch = branch, sale__date_time__gte = dt, sale__is_active = True)
 
 
