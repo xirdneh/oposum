@@ -48,9 +48,13 @@ def save_entries(request):
         for d in details:
             p = Product.objects.get(slug = d['slug'].replace('-', ''))
             q = int(d['qty'])
-            try:
-                e = Existence.objects.get(branch = b, product = p)
-            except Existence.DoesNotExist:
+            es = Existence.objects.filter(branch = b, product = p)
+            if len(es) > 1:
+                es_del = es[1:]
+                for e in es_del:
+                    e.delete()
+                e = es[0]
+            else:
                 logger.debug("Creating Existence for {0}".format(b.name))
                 e = Existence(product = p, quantity = 0, branch = b)
             e.quantity += q

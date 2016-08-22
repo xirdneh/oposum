@@ -120,7 +120,7 @@ class LayawayHistoryManager(models.Manager):
                 for p in payments]
         return ret
 
-class LayawayHistoryManager(modles.Manager):
+class LayawayHistoryManager(models.Manager):
     
     def get_layaways_structure(self, branch, datestart, dateend):
         layaways = super(LayawayManager, self).get_query_set().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = False).order_by('date_time')
@@ -147,7 +147,7 @@ class LayawayHistoryManager(modles.Manager):
             sds = LayawayHistory.objects.filter(sale = l)
             key = ''
             for lh in lhs:
-                ret[date_l['all_layaways'][-1]['sales'].apend(lh)
+                ret[date_l]['all_layaways'][-1]['sales'].apend(lh)
 
 class LayawayHistory(models.Model):
     branch = models.ForeignKey(Branch)
