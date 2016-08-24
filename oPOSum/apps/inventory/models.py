@@ -84,7 +84,7 @@ class InventoryEntry(models.Model):
     inv = models.ForeignKey(Inventory, blank=True)
     product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default = 1)
-    date_time = models.DateTimeField(_("Date and Time"), auto_now = True, default = datetime.now)
+    date_time = models.DateTimeField(_("Date and Time"), auto_now = True)
     user = models.ForeignKey(User)
 
     def as_json(self):
@@ -112,8 +112,8 @@ class InventoryAdjustment(models.Model):
         )
 
 class ProductTransfer(models.Model):
-    branch_from = models.ForeignKey('branches.Branch', related_name='from')
-    branch_to = models.ForeignKey('branches.Branch', related_name='to')
+    branch_from = models.ForeignKey('branches.Branch', related_name='branch_from')
+    branch_to = models.ForeignKey('branches.Branch', related_name='branch_to')
     status = models.TextField(_("Status"), max_length = 255, blank=False, null=False)
     date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
     user = models.ForeignKey(User)

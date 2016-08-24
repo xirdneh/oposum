@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
 urlpatterns = patterns('oPOSum.apps.client.views',
     url(r'^$', 'index', name='client-index'),

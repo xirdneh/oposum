@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from oPOSum.apps.products.forms import *
@@ -23,7 +23,7 @@ def add_products(request, prod = ''):
         if p:
             form = ProductForm(instance=p[0])
             if not request.is_ajax():
-                return render_to_response('products/edit_products.html', { 'edit_form' : form, 'message': 'Este articulo ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request))
+                return render(request, 'products/edit_products.html', { 'edit_form' : form, 'message': 'Este articulo ya existe, desea sobreescribir los datos?'})
             else:
                 return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
         else:
@@ -31,25 +31,25 @@ def add_products(request, prod = ''):
         if form.is_valid(): 
             p_new = form.save()
             if not request.is_ajax():
-                return render_to_response('products/add_products.html', { 'add_form' : ProductForm(), 'message':'Articulo guardado exitosamente, ' + p_new.slug}, context_instance=RequestContext(request))
+                return render(request, 'products/add_products.html', { 'add_form' : ProductForm(), 'message':'Articulo guardado exitosamente, ' + p_new.slug})
             else:
                 return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
         else:
             if not request.is_ajax():
-                return render_to_response('products/add_products.html', { 'add_form' : ProductForm(request.POST), 'form_errors' : form.errors}, context_instance=RequestContext(request))
+                return render(request, 'products/add_products.html', { 'add_form' : ProductForm(request.POST), 'form_errors' : form.errors})
             else:
                 return HttpResponse("{ \"status\":\"error\", \"message\":\"message\"}", mimetype='application/json')
     else:
         if prod == '' or not prod:
             form = ProductForm()
-            return render_to_response('products/add_products.html', { 'add_form' : form }, context_instance=RequestContext(request))
+            return render(request, 'products/add_products.html', { 'add_form' : form })
         else:
             logger.debug("Analaizando nuevo producto: {0}".format(prod))
-            return render_to_response('products/add_products.html', 
+            return render(request, 'products/add_products.html', 
                                   { 'add_form' : ProductForm(initial= __get_full_product(prod)),
                                     'message': 'Al guardar el articulo esta ventana se cerrara',
                                     'close_on_save':True
-                                  }, context_instance=RequestContext(request))
+                                  })
 
 
 @login_required
@@ -60,8 +60,9 @@ def edit_products(request):
             form = ProductForm(request.POST, instance=p[0])
             if form.is_valid():
                 p_new = form.save()
-                return render_to_response('products/add_products.html', { 'add_form' : ProductForm(), 'message':'Producto editado con exito ' + p_new.slug}, context_instance=RequestContext(request))
-    return render_to_response('products/add_products.html', { 'add_form' : ProductForm()}, context_instance=RequestContext(request))
+                return render(request, 'products/add_products.html', { 'add_form' : ProductForm(), 'message':'Producto editado con exito ' + p_new.slug})
+
+    return render(request, 'products/add_products.html', { 'add_form' : ProductForm()})
 
 @login_required
 def add_category(request): 
@@ -69,17 +70,17 @@ def add_category(request):
         c = ProductCategory.objects.filter(name = request.POST['name'])
         if c:
             form = ProductCategoryForm(instance=c[0])
-            return render_to_response('products/edit_category.html', { 'edit_form' : form, 'message': 'Esta categoria ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request)) 
+            return render(request, 'products/edit_category.html', { 'edit_form' : form, 'message': 'Esta categoria ya existe, desea sobreescribir los datos?'}) 
         else:
             form = ProductCategoryForm(request.POST)
         if form.is_valid(): 
             c_new = form.save()
-            return render_to_response('products/add_category.html', { 'add_form' : ProductCategoryForm(), 'message':'Categoria guardado exitosamente, ' + c_new.name}, context_instance=RequestContext(request))
+            return render(request, 'products/add_category.html', { 'add_form' : ProductCategoryForm(), 'message':'Categoria guardado exitosamente, ' + c_new.name})
         else:
-            return render_to_response( 'products/add_category.html', { 'add_form' : ProductCategoryForm(), 'form_errors' : form.errors}, context_instance=RequestContext(request))
+            return render(request, 'products/add_category.html', { 'add_form' : ProductCategoryForm(), 'form_errors' : form.errors})
     else:
         form = ProductCategoryForm()
-        return render_to_response('products/add_category.html', { 'add_form' : form }, context_instance=RequestContext(request))
+        return render(request, 'products/add_category.html', { 'add_form' : form })
 
 @login_required
 def edit_category(request):
@@ -89,8 +90,9 @@ def edit_category(request):
             form = ProductCategoryForm(request.POST, instance=c[0])
             if form.is_valid():
                 c_new = form.save()
-                return render_to_response(request, 'products/add_category.html', { 'add_form' : ProductCategoryForm(), 'message':'Categoria editada con exito ' + c_new.name})
-    return render_to_response('products/add_category.html', { 'add_form' : ProductCategoryForm()}, context_instance=RequestContext(request))
+                return render(request, 'products/add_category.html', { 'add_form' : ProductCategoryForm(), 'message':'Categoria editada con exito ' + c_new.name})
+
+    return render(request, 'products/add_category.html', { 'add_form' : ProductCategoryForm()})
 
 @login_required
 def add_provider(request): 
@@ -98,17 +100,17 @@ def add_provider(request):
         p = Provider.objects.filter(sku = request.POST['sku'])
         if p:
             form = ProviderForm(instance=p[0])
-            return render_to_response('products/edit_provider.html', { 'edit_form' : form, 'message': 'Este proveedor ya existe, desea sobreescribir los datos?'}, context_instance=RequestContext(request)) 
+            return render(request, 'products/edit_provider.html', { 'edit_form' : form, 'message': 'Este proveedor ya existe, desea sobreescribir los datos?'}) 
         else:
             form = ProviderForm(request.POST)
         if form.is_valid(): 
             p_new = form.save()
-            return render_to_response('products/add_provider.html', { 'add_form' : ProviderForm(), 'message':'Proveedor guardado exitosamente, ' + p_new.name}, context_instance=RequestContext(request))
+            return render(request, 'products/add_provider.html', { 'add_form' : ProviderForm(), 'message':'Proveedor guardado exitosamente, ' + p_new.name})
         else:
-            return render_to_response('products/add_provider.html', { 'add_form' : ProviderForm(), 'form_errors' : form.errors}, context_instance=RequestContext(request))
+            return render(request, 'products/add_provider.html', { 'add_form' : ProviderForm(), 'form_errors' : form.errors})
     else:
         form = ProviderForm()
-        return render_to_response('products/add_provider.html', { 'add_form' : form }, context_instance=RequestContext(request))
+        return render(request, 'products/add_provider.html', { 'add_form' : form })
 
 @login_required
 def edit_provider(request):
@@ -118,8 +120,8 @@ def edit_provider(request):
             form = ProviderForm(request.POST, instance=p[0])
             if form.is_valid():
                 p_new = form.save()
-                return render_to_response('products/add_provider.html', { 'add_form' : ProviderForm(), 'message':'Proveedor modificado exitosamente ' + p_new.name}, context_instance=RequestContext(request))
-    return render_to_response('products/add_provider.html', { 'add_form' : ProviderForm()}, context_instance=RequestContext(request))
+                return render(request, 'products/add_provider.html', { 'add_form' : ProviderForm(), 'message':'Proveedor modificado exitosamente ' + p_new.name})
+    return render(request, 'products/add_provider.html', { 'add_form' : ProviderForm()})
 
 @login_required
 def get_product(request, slug):
@@ -228,7 +230,7 @@ def get_transactions(request, slug):
 def show_transactions(request, slug):
     p = Product.objects.get(slug = slug.replace('-', ''))
     transactions = p.get_transactions()
-    return render_to_response('products/show_transactions.html', { 'transactions' : transactions, 'product' : p, 'product_cats': p.category.all()}, context_instance=RequestContext(request))
+    return render(request, 'products/show_transactions.html', { 'transactions' : transactions, 'product' : p, 'product_cats': p.category.all()})
 
 @login_required
 def search(request):
@@ -243,5 +245,5 @@ def search(request):
             'existence': p.get_transactions_count()
         })
     ret = sorted(ret, key=lambda o: o['existence'], reverse=True)
-    return render_to_response('products/search.html', { 'products' : ret}, context_instance=RequestContext(request))
+    return render(request, 'products/search.html', { 'products' : ret})
 

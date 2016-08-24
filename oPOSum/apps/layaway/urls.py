@@ -1,7 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+from oPOSum.apps.layaway import views as layaway_views
 
-urlpatterns = patterns('oPOSum.apps.layaway.views',
-    url(r'save-layaway/?$', 'save_layaway', name='layaway-save'),
-    url(r'save-payment/?$', 'save_payment', name='layaway-payment'),
-    url(r'$', 'index', name='layaway-index'),
-    )
+urlpatterns = [
+    url(r'save-layaway/?$', layaway_views.save_layaway, name='layaway-save'),
+    url(r'save-payment/?$', layaway_views.save_payment, name='layaway-payment'),
+    url(r'$', layaway_views.index, name='layaway-index'),
+] 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def index(request):
-    return render_to_response('clients/index.html', context_instance=RequestContext(request))
+    return render(request, 'clients/index.html')
 
 @login_required
 def new(request, client_id = None):
@@ -26,7 +26,7 @@ def new(request, client_id = None):
             try:
                 c = form.save(commit=False)
                 c.save()
-                return render_to_response('clients/new.html', { 'form': form, 'client':c, 'apps':apps }, context_instance=RequestContext(request))
+                return render(request, 'clients/new.html', { 'form': form, 'client':c, 'apps':apps })
             except ValidationError as e:
                 logger.error("Client Form Errors: {0}".format(e.message_dict))
         else:
@@ -36,7 +36,7 @@ def new(request, client_id = None):
                 logger.error("{0}".format(form.errors[error]))
             try:
                 cc = Client.objects.get(phonenumber=request.POST['phonenumber'])
-                return render_to_response('clients/new.html', { 'form': form, 'client':cc, 'apps':apps, 'message': 'Un cliente con la misma información ya existe. Abajo estan los datos de este cliente.' }, context_instance=RequestContext(request))
+                return render(render, 'clients/new.html', { 'form': form, 'client':cc, 'apps':apps, 'message': 'Un cliente con la misma información ya existe. Abajo estan los datos de este cliente.' })
             except Client.DoesNotExist:
                 logger.error("Client doesn't exists: \n")
     else:
@@ -55,11 +55,11 @@ def new(request, client_id = None):
                     wts = [{'workshop_ticket': wt, 'last_payment': wt.get_last_payment(), 'payments': wt.workshoppayment_set.all().order_by('date_time')}
                             for wt in WorkshopTicket.objects.filter(client = c).order_by('date_time')]
                     ret['workshop_tickets'] = wts
-                return render_to_response('clients/new.html',ret , context_instance=RequestContext(request))
+                return render(render, 'clients/new.html', ret)
             except Client.DoesNotExist:
                 logger.debug("Search client id doesn't exist {0}".format(client_id))
         form = ClientForm()
-    return render_to_response('clients/new.html', { 'form': form}, context_instance=RequestContext(request))
+    return render(request, 'clients/new.html', { 'form': form})
 
 @login_required
 def search(request):
@@ -89,5 +89,6 @@ def search(request):
                 Q(last_name__icontains = q) |
                 Q(email__icontains = q)
                 ).order_by('first_name', 'last_name')
-        return render_to_response('clients/search.html',{'clients': clients}, context_instance=RequestContext(request))
-    return render_to_response('clients/search.html',context_instance=RequestContext(request))
+        return render(request, 'clients/search.html',{'clients': clients})
+
+    return render(request, 'clients/search.html')

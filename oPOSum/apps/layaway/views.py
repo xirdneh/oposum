@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from oPOSum.apps.branches.decorators import needs_branch
 from django.template import RequestContext
 from django.http import HttpResponse
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 @login_required
 def index(request):
-    return render_to_response('/pos/layaway/index.html', context_instance=RequestContext(request))
+    return render(request, '/pos/layaway/index.html')
 
 @login_required
 def add_layaway(request):
@@ -106,7 +106,7 @@ def save_layaway(request):
                                              json.dumps(layaway.as_json(), encoding="latin-1"),
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
-    return render_to_response('/layaway/index.html', context_instance=RequestContext(request))
+    return render(request, '/layaway/index.html')
 
 def save_payment(request):
     error = False
@@ -147,4 +147,4 @@ def save_payment(request):
                                              json.dumps(layaway.as_json(), encoding="latin-1"),
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
-    return render_to_response('/layaway/index.html', context_instance=RequestContext(request))
+    return render(request, '/layaway/index.html')

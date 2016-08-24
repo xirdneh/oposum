@@ -1,8 +1,9 @@
-Django==1.6
-South==0.8.4
-django-sekizai==0.7
+Django
+django-sekizai
+django-reversion
 Pillow
 reportlab
 pytz
 psycopg2
 python-dateutil
+MySQL-python

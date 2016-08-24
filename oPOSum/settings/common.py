@@ -66,20 +66,29 @@ STATICFILES_FINDERS = (
 SECRET_KEY = '*zdc3pcqz2ksc!3zgj&7)m9tri0c_c@6cod(*p$7!5&!ph=gku'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+#TEMPLATE_LOADERS = (
+#    'django.template.loaders.filesystem.Loader',
+#    'django.template.loaders.app_directories.Loader',
+##     'django.template.loaders.eggs.Loader',
+#)
+
+CACHES = {
+  'default': {
+      'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+      'LOCATION': 'memcached:11211',
+  },
+}
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    #'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'oPOSum.urls'
@@ -87,43 +96,63 @@ ROOT_URLCONF = 'oPOSum.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'oPOSum.wsgi.application'
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-  'django.contrib.auth.context_processors.auth',
-  'django.core.context_processors.i18n',
-  'django.core.context_processors.request',
-  'django.core.context_processors.media',
-  'django.core.context_processors.static',
-  'sekizai.context_processors.sekizai', 
-  )
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PROJECT_DIR, '../templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'sekizai.context_processors.sekizai',
+            ],
+        },
+    },
+]
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_DIR, '../templates'),
-)
+#TEMPLATE_CONTEXT_PROCESSORS = (
+#  'django.contrib.auth.context_processors.auth',
+#  'django.core.context_processors.i18n',
+#  'django.core.context_processors.request',
+#  'django.core.context_processors.media',
+#  'django.core.context_processors.static',
+#  'sekizai.context_processors.sekizai', 
+#  )
+#
+#TEMPLATE_DIRS = (
+#    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+#    # Always use forward slashes, even on Windows.
+#    # Don't forget to use absolute paths, not relative paths.
+#    os.path.join(PROJECT_DIR, '../templates'),
+#)
 
 INSTALLED_APPS = (
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    'django.contrib.admindocs',
-    'south',
+    'django.contrib.sitemaps',
     'sekizai',
+    'reversion',
+    'oPOSum.apps.authentication',
     'oPOSum.apps.branches',
-    'oPOSum.apps.products',
     'oPOSum.apps.inventory',
     'oPOSum.apps.pos',
-    'oPOSum.apps.client',
     'oPOSum.apps.layaway',
+    'oPOSum.apps.products',
+    'oPOSum.apps.client',
     'oPOSum.apps.workshop',
-    'oPOSum.apps.authentication',
     'oPOSum.libs',
 )
 

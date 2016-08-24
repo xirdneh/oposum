@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from oPOSum.apps.inventory.models import *
@@ -17,20 +17,17 @@ import logging
 logger = logging.getLogger(__name__)
 @login_required
 def entries(request):
-    return render_to_response('inventory/entries.html', context_instance=RequestContext(request))
+    return render(request, 'inventory/entries.html')
 
 @login_required
 def manage_existence(request):
-    return render_to_response('inventory/add_existence.html', 
-                              context_instance=RequestContext(request))
+    return render(request, 'inventory/add_existence.html')
 @login_required
 def manage_entries(request):
-    return render_to_response('inventory/add_existence.html', 
-                              context_instance=RequestContext(request))
+    return render(request, 'inventory/add_existence.html')
 @login_required
 def manage_exits(request):
-    return render_to_response('inventory/add_exits.html', 
-                              context_instance=RequestContext(request))
+    return render(request, 'inventory/add_exits.html')
 
 @login_required
 def save_entries(request):
@@ -211,7 +208,7 @@ def existence_history(request, id):
         eh = ExistenceHistory.objects.get(id = id)
         ehds = ExistenceHistoryDetail.objects.filter(existence = eh)
         ret = [ehd.as_json() for ehd in ehds]
-        return render_to_response('inventory/existence_history.html', { 'entries': json.dumps(ret), 'eh':eh.as_json()},context_instance=RequestContext(request))
+        return render(request, 'inventory/existence_history.html', { 'entries': json.dumps(ret), 'eh':eh.as_json()})
     except:
         logger.debug("Error while retrieveing entries history \n{0}".format(traceback.format_exc()))
         return HttpResponse("{ \"status\": \"error\", \"message\":\"\"}", content_type="application/json")
@@ -223,13 +220,13 @@ def inventory_check(request):
     if len(inventory) > 0 and inventory[0].branch in branches:
         inventory = inventory[0]
         request.session['inventory_id'] = inventory.id
-        return render_to_response('inventory/inventory_check.html', { 'inventory': inventory, 'enable_form': True, 'inv_branch':inventory.branch.slug },context_instance=RequestContext(request))
+        return render(request, 'inventory/inventory_check.html', { 'inventory': inventory, 'enable_form': True, 'inv_branch':inventory.branch.slug })
     else:
         if len(inventory) < 1:
             title = 'No hay inventarios programados'
         elif not inventory[0].branch in branches:
             title = 'No hay acceso al inventario programado'
-        return render_to_response('inventory/inventory_check.html', { 'title':title , 'enable_form': False },context_instance=RequestContext(request))
+        return render(request, 'inventory/inventory_check.html', { 'title':title , 'enable_form': False })
 
 @login_required
 def save_entry(request):
@@ -331,16 +328,16 @@ def current_inventory(request):
     inv = request.session.get('inventory_id', False)
     if not inv:
         logger.error("No inventory found")
-        return render_to_response('inventory/current_inventory.html', { 'entries': [] },context_instance=RequestContext(request))
+        return render(request, 'inventory/current_inventory.html', { 'entries': [] },)
     try:
         inventory = Inventory.objects.get(id=inv)
         entries = InventoryEntry.objects.filter(inv = inventory)
         ret = [entry.as_json() for entry in entries]
-        return render_to_response('inventory/current_inventory.html', { 'entries': json.dumps(ret), 'inv_branch':inventory.branch.slug, 'enable_form':True },context_instance=RequestContext(request))
+        return render(request, 'inventory/current_inventory.html', { 'entries': json.dumps(ret), 'inv_branch':inventory.branch.slug, 'enable_form':True })
     except :
         logger.error("No inventory found")
         logger.error("Unexpected error:\n{0} ".format(traceback.format_exc()))
-        return render_to_response('inventory/current_inventory.html', { 'entries': [] },context_instance=RequestContext(request))
+        return render(request, 'inventory/current_inventory.html', { 'entries': [] })
 
 @login_required
 def adjustments_inventory(request):
@@ -368,11 +365,11 @@ def adjustments_inventory(request):
                                 user = request.user)
             ie.save()
             entries.append({'entry': ie, 'tcount': sq, 'diff': sq, 'adjcnt': 0})
-        return render_to_response('inventory/adjustments_inventory.html', { 'entries': entries, 'inv_branch':inventory.branch.slug, 'inventory':inventory, 'enbale_form':True}, context_instance=RequestContext(request))
+        return render(request, 'inventory/adjustments_inventory.html', { 'entries': entries, 'inv_branch':inventory.branch.slug, 'inventory':inventory, 'enbale_form':True})
     except:
         logger.error("No inventory found")
         logger.error("Unexpected error:\n{0}".format(traceback.format_exc()))
-        return render_to_response('inventory/adjustments_inventory.html', { 'entries': [] }, context_instance=RequestContext(request))
+        return render(request, 'inventory/adjustments_inventory.html', { 'entries': [] })
     #ret = [sale.as_json() for sale in sales]
 
 @login_required
@@ -526,7 +523,7 @@ def print_inventory_missing(request):
 @login_required
 def transfers(request, branch = None):
     if branch is None:
-        return render_to_response('inventory/transfers.html', context_instance=RequestContext(request))
+        return render(request, 'inventory/transfers.html')
     if request.GET.get('create', False):
         show_form = True
     else:
@@ -540,7 +537,7 @@ def transfers(request, branch = None):
     trans_from = [o.as_json() for o in tfrom]
     tto = ProductTransfer.objects.exclude(status = 'delivered').filter(branch_to = b)
     trans_to = [o.as_json() for o in tto]
-    return render_to_response('inventory/transfers/index.html', { 'branch': b, 'trans_from': trans_from, 'trans_to': trans_to, 'show_form': show_form}, context_instance=RequestContext(request))
+    return render(request, 'inventory/transfers/index.html', { 'branch': b, 'trans_from': trans_from, 'trans_to': trans_to, 'show_form': show_form})
 
 @login_required
 def save_transfer(request):

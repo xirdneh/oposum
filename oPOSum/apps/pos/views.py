@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from oPOSum.apps.branches.decorators import needs_branch
 from django.template import RequestContext
 from django.http import HttpResponse
@@ -28,7 +28,7 @@ def get_pos_folio(branch, type):
     return f_val
 
 def sales(request):
-    return render_to_response('pos/sales.html', context_instance=RequestContext(request))
+    return render(request, 'pos/sales.html')
 
 def save_sale(request):
     if request.is_ajax():
@@ -123,11 +123,11 @@ def get_sales_report_branch(request, branch, datestart, dateend=None):
     start_date = pytz.utc.normalize(start_date.astimezone(tz))
     ret = Sale.objects.get_sales_structure(branch, start_date, end_date)
     b = Branch.objects.get(slug = branch) 
-    return render_to_response('pos/sale_details_report.html', 
+    return render(request, 'pos/sale_details_report.html', 
                                 { 'sales':ret['sales'], 
                                   'totales':ret['totales'], 
                                   'folio_start': ret['folio_start'], 
                                   'folio_end': ret['folio_end'], 
                                   'datestart': start_date.strftime("%d-%B-%Y"), 
                                   'dateend':end_date.strftime("%d-%B-%Y"), 
-                                  'branch': b.name },context_instance=RequestContext(request))
+                                  'branch': b.name })
