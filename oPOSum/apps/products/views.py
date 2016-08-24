@@ -25,7 +25,7 @@ def add_products(request, prod = ''):
             if not request.is_ajax():
                 return render(request, 'products/edit_products.html', { 'edit_form' : form, 'message': 'Este articulo ya existe, desea sobreescribir los datos?'})
             else:
-                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
+                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", content_type='application/json')
         else:
             form = ProductForm(request.POST)
         if form.is_valid(): 
@@ -33,12 +33,12 @@ def add_products(request, prod = ''):
             if not request.is_ajax():
                 return render(request, 'products/add_products.html', { 'add_form' : ProductForm(), 'message':'Articulo guardado exitosamente, ' + p_new.slug})
             else:
-                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", mimetype='application/json')
+                return HttpResponse("{ \"status\":\"ok\", \"message\":\"message\"}", content_type='application/json')
         else:
             if not request.is_ajax():
                 return render(request, 'products/add_products.html', { 'add_form' : ProductForm(request.POST), 'form_errors' : form.errors})
             else:
-                return HttpResponse("{ \"status\":\"error\", \"message\":\"message\"}", mimetype='application/json')
+                return HttpResponse("{ \"status\":\"error\", \"message\":\"message\"}", content_type='application/json')
     else:
         if prod == '' or not prod:
             form = ProductForm()
@@ -146,7 +146,7 @@ def get_product(request, slug):
             ret['status'] = 'error'
             ret['message'] = 'Producto no encontrado'
             ret['slug'] = slug
-        return HttpResponse(json.dumps(ret) , mimetype='application/json')
+        return HttpResponse(json.dumps(ret) , content_type='application/json')
     logger.debug('Producto conocido')
     if p.regular_price == Decimal('0.00') and p.line is not None:
         retail_price = p.equivalency * p.line.price
@@ -172,7 +172,7 @@ def get_product(request, slug):
         'desc': des
     }
     logger.debug("Producto conocido: {0}".format(p))
-    return HttpResponse(json.dumps(ret) , mimetype='application/json')
+    return HttpResponse(json.dumps(ret) , content_type='application/json')
 
 def __get_full_product(slug):
     try:
@@ -219,12 +219,12 @@ def migrate_prod(request):
                         'description':p.description
                         }
         }
-        return HttpResponse(json.dumps(ret), mimetype='application/json')
+        return HttpResponse(json.dumps(ret), content_type='application/json')
 
 @login_required
 def get_transactions(request, slug):
     p = Product.objects.get(slug = slug.replace('-', ''))
-    return HttpResponse("{\"response\": \"ok\", \"result\":" + json.dumps(p.get_transactions()) + "}", mimetype="application/json");
+    return HttpResponse("{\"response\": \"ok\", \"result\":" + json.dumps(p.get_transactions()) + "}", content_type="application/json");
 
 @login_required
 def show_transactions(request, slug):
