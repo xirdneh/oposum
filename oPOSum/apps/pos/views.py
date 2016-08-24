@@ -7,6 +7,7 @@ from oPOSum.apps.branches.models import Branch
 from oPOSum.apps.pos.models import POSFolio, Sale, SaleDetails
 from oPOSum.apps.inventory.models import Existence
 from oPOSum.libs import utils as pos_utils
+from oPOSum.libs import sales as sales_utils
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.conf import settings
@@ -77,7 +78,7 @@ def save_sale(request):
         #    sd.save()
         s.total_amount = total
         s.save()
-    return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\", \"sale\": " + json.dumps(s.as_json(), encoding="latin-1") + "}", mimetype="application/json")
+    return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\", \"sale\": " + json.dumps(s.as_json(), encoding="latin-1") + "\"ticket_str\":\"" + sales_utils.ticket_text(s) + "\"}", content_type="application/json")
 
 def get_sales_report(request, branch, urldatetime):
     tz = pytz.timezone('America/Monterrey')

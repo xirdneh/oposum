@@ -21,8 +21,8 @@ class Branch(models.Model):
     name = models.CharField(max_length=50, blank=False, default="branch name")
     address = models.CharField(max_length=255, blank=True, null=True)
     details = models.ManyToManyField(BranchDetail, blank = True)
-    ticket_pre = models.TextField(max_length=255, blank=True, null=True)
-    ticket_post = models.TextField(max_length=255, blank=True, null=True)
+    ticket_pre = models.TextField(blank=True, null=True)
+    ticket_post = models.TextField(blank=True, null=True)
     type = models.ForeignKey(BranchType)
 
     def __unicode__(self):
