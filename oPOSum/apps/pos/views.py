@@ -9,6 +9,7 @@ from oPOSum.apps.inventory.models import Existence
 from oPOSum.libs import utils as pos_utils
 from oPOSum.libs import sales as sales_utils
 from django.contrib.auth.models import User
+from django.db import transaction
 from datetime import datetime
 from django.conf import settings
 import pytz
@@ -21,11 +22,12 @@ logger = logging.getLogger(__name__)
 log_sales = logging.getLogger("sales")
 
 def get_pos_folio(branch, type):
-    b = branch
-    f = POSFolio.objects.select_for_update().get(branch = b, name=type)
-    f_val = f.value
-    f.value = f_val + 1
-    f.save()
+    with transaction.atomic():
+        b = branch
+        f = POSFolio.objects.select_for_update().get(branch = b, name=type)
+        f_val = f.value
+        f.value = f_val + 1
+        f.save()
     return f_val
 
 def sales(request):
