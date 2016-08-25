@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def ticket_text(sale):
     date = sale.date_time.strftime('%d/%m/%Y')
-    sales_det_str = u'#  CODIGO/DESCRIPCION  PRECIO  CANTIDAD {{CR}} {{LF}}'.encode('latin-1')
+    sales_det_str = u' {{CR}} {{LF}} #  CODIGO/DESCRIPCION  PRECIO  CANTIDAD {{CR}} {{LF}} '.encode('latin-1')
     cnt = 1
     for sd in sale.saledetails_set.all():
         sales_det_str += str(cnt) + ' {{TAB}} '
@@ -41,7 +41,7 @@ def ticket_text(sale):
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  TOTAL:   ' + str(sale.total_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  SU PAGO:  ' + str(sale.payment_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  {{TAB}} (' + sale.payment_method + ') {{CR}} {{LF}} {{BOLDOFF}}'
-    sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  SU CAMBIO: ' + str(sale.total_amount - sale.payment_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
+    sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  SU CAMBIO: ' + str(sale.payment_amount - sale.total_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
 
     sales_det_str = sale.branch.ticket_pre + ' {{CR}} {{LF}} ' + sales_det_str + ' {{CR}} {{LF}} '
     sales_det_str += ' {{BOLDON}} SUCURSAL  {{TAB}}  ' + sale.branch.name + ' {{CR}} {{LF}} {{BOLDOFF}} '

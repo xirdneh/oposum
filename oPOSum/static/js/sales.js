@@ -405,7 +405,7 @@ $("#save_ticket").submit(function(e){
         ticket_str = ticket_str + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} ' + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} {{PAPERCUT}}' + 
-                 ' {{TAB}} *************** COPIA ******************' +
+                 ' {{TAB}} *************** COPIA ****************** ' +
                  ticket_str + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} ' + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} {{PAPERCUT}}';
