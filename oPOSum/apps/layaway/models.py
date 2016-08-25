@@ -11,7 +11,7 @@ from decimal import Decimal
 class LayawayManager(models.Manager):
     def can_add_more(self, client):
         ret = True
-        ls = super(LayawayManager, self).get_query_set().filter(client = client)
+        ls = super(LayawayManager, self).get_queryset().filter(client = client)
         cnt = 0
         for l in ls:
             if l.get_debt_amount() > Decimal(0.0):
@@ -32,7 +32,7 @@ class LayawayManager(models.Manager):
         return total
 
     def get_layaways(self, branch, datestart, dateend):
-        layaways = super(LayawayManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        layaways = super(LayawayManager, self).get_queryset().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
 
 
 
@@ -114,16 +114,14 @@ class LayawayProduct(models.Model):
 
 class LayawayHistoryManager(models.Manager):
     def get_payments_json(self, branch, datestart, dateend):
-        payments = super(LayawayHistoryManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        payments = super(LayawayHistoryManager, self).get_queryset().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
         ret = [{'payment': p.as_json(), 
                 'layaway': p.layaway.as_json()}
                 for p in payments]
         return ret
-
-class LayawayHistoryManager(models.Manager):
     
     def get_layaways_structure(self, branch, datestart, dateend):
-        layaways = super(LayawayManager, self).get_query_set().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = False).order_by('date_time')
+        layaways = super(LayawayManager, self).get_queryset().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = False).order_by('date_time')
         tz = pytz.timezone('America/Monterrey')
         ret = {}
         date = None

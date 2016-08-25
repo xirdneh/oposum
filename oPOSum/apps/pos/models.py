@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 #from oPOSum.apps.products.models import Product
 from oPOSum.apps.branches.models import Branch
+from oPOSum.libs import sales as sales_utils
 from django.contrib.auth.models import User
 from decimal import Decimal
 import logging, traceback
@@ -13,11 +14,11 @@ logger = logging.getLogger(__name__)
 # Create your models here.
 class SaleManager(models.Manager):
     def get_sales(self, branch, datestart, dateend):
-        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
+        sales = super(SaleManager, self).get_queryset().filter(branch__slug = branch).filter(date_time__range=(start_date, end_date)).order_by('date_time')
         return sales
 
     def get_sales_structure(self, branch, datestart, dateend):
-        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = True).order_by('date_time')
+        sales = super(SaleManager, self).get_queryset().filter(branch__slug = branch, date_time__range=(datestart, dateend), is_active = True).order_by('date_time')
         tz = pytz.timezone('America/Monterrey')
         ret = {}
         date = None
@@ -98,7 +99,7 @@ class SaleManager(models.Manager):
                 'folio_end': sales.last().folio_number}
 
     def get_sales_json(self, branch, datestart, dateend):
-        sales = super(SaleManager, self).get_query_set().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
+        sales = super(SaleManager, self).get_queryset().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
         logger.debug("ret {0}".format(sales))
         ret = [sale.as_json() for sale in sales]
         return ret
@@ -131,7 +132,7 @@ class Sale(models.Model):
             folio_number = self.folio_number,
             ticket_pre = self.branch.ticket_pre.encode('unicode_escape'),
             ticket_post = self.branch.ticket_post.encode('unicode_escape'),
-            sale_details = [sd.as_json() for sd in self.saledetails_set.all()]
+            sale_details = [sd.as_json() for sd in self.saledetails_set.all()],
             )
 
 class SaleDetails(models.Model):

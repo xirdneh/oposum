@@ -18,7 +18,7 @@ def index(request):
     return render(request, 'clients/index.html')
 
 @login_required
-def new(request, client_id = None):
+def new_client(request, client_id = None):
     apps = pos_utils.get_installed_oposum_apps()
     if request.method == 'POST':
         form = ClientForm(request.POST)
@@ -36,7 +36,7 @@ def new(request, client_id = None):
                 logger.error("{0}".format(form.errors[error]))
             try:
                 cc = Client.objects.get(phonenumber=request.POST['phonenumber'])
-                return render(render, 'clients/new.html', { 'form': form, 'client':cc, 'apps':apps, 'message': 'Un cliente con la misma información ya existe. Abajo estan los datos de este cliente.' })
+                return render(request, 'clients/new.html', { 'form': form, 'client':cc, 'apps':apps, 'message': 'Un cliente con la misma información ya existe. Abajo estan los datos de este cliente.' })
             except Client.DoesNotExist:
                 logger.error("Client doesn't exists: \n")
     else:
@@ -55,7 +55,7 @@ def new(request, client_id = None):
                     wts = [{'workshop_ticket': wt, 'last_payment': wt.get_last_payment(), 'payments': wt.workshoppayment_set.all().order_by('date_time')}
                             for wt in WorkshopTicket.objects.filter(client = c).order_by('date_time')]
                     ret['workshop_tickets'] = wts
-                return render(render, 'clients/new.html', ret)
+                return render(request, 'clients/new.html', ret)
             except Client.DoesNotExist:
                 logger.debug("Search client id doesn't exist {0}".format(client_id))
         form = ClientForm()

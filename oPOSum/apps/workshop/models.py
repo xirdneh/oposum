@@ -12,7 +12,7 @@ class WorkshopTicketManager(models.Manager):
 
     def get_total_debt_amount(self, client):
         ret = Decimal(0.0)
-        tickets = super(self, WorkshopTicketManager).get_query_set().filter(client = client)
+        tickets = super(self, WorkshopTicketManager).get_queryset().filter(client = client)
         for t in tickets:
             payments = tickets.workshoppayment_set.all()
 

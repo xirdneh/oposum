@@ -80,7 +80,15 @@ def save_sale(request):
         #    sd.save()
         s.total_amount = total
         s.save()
-    return HttpResponse("{\"reponse\": \"OK\", \"folio\":\"" + str(folio)+ "\", \"ticket_pre\":\"" + branch.ticket_pre.encode('unicode_escape')+ "\", \"ticket_post\":\"" + branch.ticket_post.encode('unicode_escape') + "\", \"sale\": " + json.dumps(s.as_json(), encoding="latin-1") + "\"ticket_str\":\"" + sales_utils.ticket_text(s) + "\"}", content_type="application/json")
+        d = {
+            'response': 'OK',
+            'folio': str(folio),
+            'ticket_pre': branch.ticket_pre.encode('unicode_escape'),
+            'ticket_post': branch.ticket_post.encode('unicode_escape'),
+            'sale': s.as_json(),
+            'ticket_str': sales_utils.ticket_text(s).encode('unicode_escape')
+        }
+    return HttpResponse(json.dumps(d, encoding='latin-1'), content_type="application/json")
 
 def get_sales_report(request, branch, urldatetime):
     tz = pytz.timezone('America/Monterrey')

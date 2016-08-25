@@ -63,7 +63,7 @@ class ExistenceHistoryDetail(models.Model):
 class InventoryManger(models.Manager):
 
     def get_branch_latest_inventory(self, branch):
-        i = super(InventoryManger, self).get_query_set().filter(branch = branch, enabled = False).order_by('date_time').last()
+        i = super(InventoryManger, self).get_queryset().filter(branch = branch, enabled = False).order_by('date_time').last()
         return i
     
 class InventoryFolio(models.Model):

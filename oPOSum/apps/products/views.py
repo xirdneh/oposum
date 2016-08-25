@@ -130,22 +130,22 @@ def get_product(request, slug):
     try:
         p = Product.objects.get(slug=slug.replace("-",""))
     except Product.DoesNotExist:
-        logger.debug("No conocemos el product: {0}".format(slug));
-        p = migrate.get_art(slug.replace("-", "")) 
-        if len(p) > 0 :
-            p = migrate.get_migration_details( p[0][15], p[0][1] ) 
-            logger.error("Producto desconocido: {0}".format(p))
-            ret = {
-                'status':'ok',
-                'message': 'Migrando',
-                'product':p
-                }
-        else:
-            logger.error("Producto no encontrado")
-            ret = {}
-            ret['status'] = 'error'
-            ret['message'] = 'Producto no encontrado'
-            ret['slug'] = slug
+        #logger.debug("No conocemos el product: {0}".format(slug));
+        #p = migrate.get_art(slug.replace("-", "")) 
+        #if len(p) > 0 :
+        #    p = migrate.get_migration_details( p[0][15], p[0][1] ) 
+        #    logger.error("Producto desconocido: {0}".format(p))
+        #    ret = {
+        #        'status':'ok',
+        #        'message': 'Migrando',
+        #        'product':p
+        #        }
+        #else:
+        logger.error("Producto no encontrado")
+        ret = {}
+        ret['status'] = 'error'
+        ret['message'] = 'Producto no encontrado'
+        ret['slug'] = slug
         return HttpResponse(json.dumps(ret) , content_type='application/json')
     logger.debug('Producto conocido')
     if p.regular_price == Decimal('0.00') and p.line is not None:

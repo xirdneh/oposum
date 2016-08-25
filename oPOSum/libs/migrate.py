@@ -10,7 +10,7 @@ logger = logging.getLogger("oPOSum.mysql")
 def get_con( ):
     try:
         con = mdb.connect('joyeriasbalco.com', 'balco', 'tsmbat', 'balco', port=25273)
-    except e:
+    except Exception as e:
         logger.error("Error %d: %s" % (e.args[0], e.args[1]))
     return con
 

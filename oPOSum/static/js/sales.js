@@ -384,72 +384,84 @@ $("#save_ticket").submit(function(e){
             console.log(errorThrown);
         }
     }).done(function(data){
-            $now = balco.convertToDate(data.sale.date_time);
-            var $folio = data.folio;
-            var $total = 0;
-            var print = false;
-            var tb = "";
-            if(balco.debug){
-                print = true;
-            }else if(balco.isLocalServerRunning){
-                print = true;
+    $now = balco.convertToDate(data.sale.date_time);
+    var $folio = data.folio;
+    var $total = 0;
+    var print = false;
+    var tb = "";
+    if(balco.debug){
+        print = true;
+    }else if(balco.isLocalServerRunning){
+        print = true;
+    }else{
+        print = !notReady();
+    }
+    if (print && typeof data.ticket_str !== 'undefined'){
+        if (balco.debug){
+            console.log(data.ticket_str);
+        }else{
+          balco.sendToPrinter(data.ticket_str);
+        }
+    }else{//the following code. delete
+    if (print) {
+    tb += data.ticket_pre;
+    tb += "\n\r";
+    if (!$now){
+        $now = new Date();
+    }
+    tb += '\n\r\t Fecha: ' + $now.getDate() + '/' 
+                               + (+$now.getMonth() + 1) + '/' 
+                               + $now.getFullYear() + '\n\r';
+    tb += '\n\r\t Folio: ' + $folio + '\n\r';
+    tb += "# \tCodigo\tPrecio\tCantidad\n\r\n\r";
+    var ptype = "";
+    for(var i =0; i < data.sale.sale_details.length; i++){
+        var item = data.sale.sale_details[i];
+        for (var j = 0; j < item.product.categories.length; j++){
+            var cat = item.product.categories[j];
+            if(cat.type == "bodega"){
+                ptype = cat.name;
+                break;
+            }
+        }
+        tb += (i+1) + " \t " + item.product.name + " \t " + item.over_price + " \t " + item.quantity + "\n\r";
+        tb += "\t" + item.product.description + " \t " + ptype + "\n\r";
+    }
+    $total = data.sale.total_amount;
+    tb += "Total: \t $" + $total + "= \n\t";
+    tb += "Su Pago: \t $" + $cp + "= \n\t";
+    tb += "Cambio: \t $" + ($cp - $total).toFixed(2) + "= \n\t";
+    tb += data.ticket_post;
+    tb += "\n\r";
+    tb += "\n\r";
+    tb += "\n\r";
+    tb += "\n\r";
+    tb += "\n\r";
+    tb += "\n\r";
+    tb += "\n\r";
+    if(balco.isLocalServerRunning){
+        tb += " {{LF}} {{CR}} {{PAPERCUT}} ";
+    }else{
+        tb+= chr(27) + chr(105)+ "\x1B\x69";
+    }
+    /** COPIA 8*/
+    tb += '\n\r\t***COPIA***\t\n\r' + tb;
+        if(!balco.debug){ 
+            if(!balco.isLocalServerRunning){
+                qz.append(tb);
+                qz.print();
             }else{
-                print = !notReady();
+                balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
             }
-            if (print) {
-            tb += data.ticket_pre;
-            tb += "\n\r";
-            if (!$now){
-                $now = new Date();
-            }
-            tb += '\n\r\t Fecha: ' + $now.getDate() + '/' 
-                                       + (+$now.getMonth() + 1) + '/' 
-                                       + $now.getFullYear() + '\n\r';
-            tb += '\n\r\t Folio: ' + $folio + '\n\r';
-            tb += "# \tCodigo\tPrecio\tCantidad\n\r\n\r";
-            var ptype = "";
-            for(var i =0; i < data.sale.sale_details.length; i++){
-                var item = data.sale.sale_details[i];
-                for (var j = 0; j < item.product.categories.length; j++){
-                    var cat = item.product.categories[j];
-                    if(cat.type == "bodega"){
-                        ptype = cat.name;
-                        break;
-                    }
+        }else{
+                if(console){
+                    console.log(tb);
                 }
-                tb += (i+1) + " \t " + item.product.name + " \t " + item.over_price + " \t " + item.quantity + "\n\r";
-                tb += "\t" + item.product.description + " \t " + ptype + "\n\r";
-            }
-            $total = data.sale.total_amount;
-            tb += "Total: \t $" + $total + "= \n\t";
-            tb += "Su Pago: \t $" + $cp + "= \n\t";
-            tb += "Cambio: \t $" + ($cp - $total).toFixed(2) + "= \n\t";
-            tb += data.ticket_post;
-            tb += "\n\r";
-            tb += "\n\r";
-            tb += "\n\r";
-            tb += "\n\r";
-            tb += "\n\r";
-            tb += "\n\r";
-            tb += "\n\r";
-            if(balco.isLocalServerRunning){tb += " {{LF}} {{CR}} {{PAPERCUT}} ";}else{tb+= chr(27) + chr(105)+ "\x1B\x69";}
-            /** COPIA 8*/
-            tb += '\n\r\t***COPIA***\t\n\r' + tb;
-            if(!balco.debug){ 
-                if(!balco.isLocalServerRunning){
-                    qz.append(tb);
-                    qz.print();
-                }else{
-                    balco.sendToPrinter(tb.replace(/[\n\r]/g, ' {{LF}} {{CR}} ').replace(/[\t]/g, ' {{TAB}} '));
-                }
-            }else{
-                    if(console){
-                        console.log(tb);
-                    }
-                }
+        }
         } else {
                 window.alert("Hay un error con la impresora. Presione la tecla F5 en el teclado y si aparece una ventana gris seleccione el recuadro que esta en la parte de abajo para que se aparezca una paloma y despues el boton que dice 'Run...'");
             }
+    }//The previows code, delete.
         var empty = [];
         dataView.setItems(empty);
         $("#nota").modal('hide');

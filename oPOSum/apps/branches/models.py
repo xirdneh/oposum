@@ -34,11 +34,11 @@ class Branch(models.Model):
             name = self.name,
         )
         if not self.ticket_pre is None:
-            ticket_pre = self.ticket_pre.encode('latin-1'),
+            ticket_pre = self.ticket_pre.encode('utf-8'),
         else:
             ticket_pre = ""
         if not self.ticket_post is None:
-            ticket_post = self.ticket_post.encode('latin-1')
+            ticket_post = self.ticket_post.encode('utf-8')
         else:
             ticket_post = ""
         ret['ticket_pre'] = ticket_pre
