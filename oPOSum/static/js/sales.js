@@ -398,16 +398,17 @@ $("#save_ticket").submit(function(e){
     }
     if (print && typeof data.ticket_str !== 'undefined'){
         var ticket_str = data.ticket_str
-                            .replace(/\n\r/g, ' {{CR}} {{LF}} ')
-                            .replace(/\t/g, ' {{TAB}} ')
-                            .replace(/[ ]{2,4}/g, ' {{TAB}} ')
-                            .replace(/\r\n/g, ' {{CR}} {{LF}} ');
+                        .replace(/\t/g, ' {{TAB}} ')
+                        .replace(/[ ]{2,4}/g, ' {{TAB}} ')
+                        .replace(/(?:\\[rn]|[\r\n]+)+/g, ' {{CR}} {{LF}} ');
 
         ticket_str = ticket_str + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} ' + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} {{PAPERCUT}}' + 
                  ' {{TAB}} *************** COPIA ******************' +
-                 ticket_str;
+                 ticket_str + 
+                 ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} ' + 
+                 ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} {{PAPERCUT}}';
         if (balco.debug){
             console.log(data.ticket_str);
         }else{
