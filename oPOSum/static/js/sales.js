@@ -410,9 +410,9 @@ $("#save_ticket").submit(function(e){
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} ' + 
                  ' {{CR}} {{LF}} {{CR}} {{LF}} {{CR}} {{LF}} {{PAPERCUT}}';
         if (balco.debug){
-            console.log(data.ticket_str);
+            console.log(ticket_str);
         }else{
-          balco.sendToPrinter(data.ticket_str);
+          balco.sendToPrinter(ticket_str);
         }
     }else{//the following code. delete
     if (print) {
