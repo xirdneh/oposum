@@ -399,7 +399,7 @@ $("#save_ticket").submit(function(e){
     if (print && typeof data.ticket_str !== 'undefined'){
         var ticket_str = data.ticket_str
                         .replace(/\t/g, ' {{TAB}} ')
-                        .replace(/[ ]{2,4}/g, ' {{TAB}} ')
+                        .replace(/[ ]{4}/g, ' {{TAB}} ')
                         .replace(/(?:\\[rn]|[\r\n]+)+/g, ' {{CR}} {{LF}} ');
 
         ticket_str = ticket_str + 

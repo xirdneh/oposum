@@ -40,11 +40,11 @@ def ticket_text(sale):
 
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  TOTAL:   ' + str(sale.total_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  SU PAGO:  ' + str(sale.payment_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
-    sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}       (' + sale.payment_method + ') {{CR}} {{LF}} {{BOLDOFF}}'
+    sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  {{TAB}} (' + sale.payment_method + ') {{CR}} {{LF}} {{BOLDOFF}}'
     sales_det_str += ' {{BOLDON}} {{TAB}}  {{TAB}}  {{TAB}}  SU CAMBIO: ' + str(sale.total_amount - sale.payment_amount) + ' {{CR}} {{LF}} {{BOLDOFF}}'
 
-    sales_det_str = sale.branch.ticket_pre + ' {{CR}} {{LF}}' + sales_det_str + ' {{CR}} {{LF}} '
-    sales_det_str += 'SUCURSAL  {{TAB}}  ' + sale.branch.name + ' {{CR}} {{LF}} '
+    sales_det_str = sale.branch.ticket_pre + ' {{CR}} {{LF}} ' + sales_det_str + ' {{CR}} {{LF}} '
+    sales_det_str += ' {{BOLDON}} SUCURSAL  {{TAB}}  ' + sale.branch.name + ' {{CR}} {{LF}} {{BOLDOFF}} '
     sales_det_str += '-------------------------------------------- {{CR}} {{LF}} '
     sales_det_str += sale.branch.ticket_post
     logger.debug(sales_det_str)
