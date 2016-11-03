@@ -21,6 +21,9 @@ handler = handlers.TimedRotatingFileHandler(LOG_FILENAME, when='D', interval=1, 
 formatter = logging.Formatter('[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+USER_SERIAL = False
+SERIALPORT = '/dev/ttyACM0'
+BAUDRATE = 115200
  
 class LocalData(object):
     records = {}
@@ -47,14 +50,28 @@ class LocalUtil(object):
         return None
 
     def send_to_zebra(self, data):
-        p = subprocess.Popen(['lpr', '-P', 'zebra'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         print_str=''
         for word in data.split():
             if word in self.const:
                 print_str += self.const[word]
             else:
                 print_str += word + ' '
-        p.communicate(input=print_str)
+        if not USER_SERIAL:
+            p = subprocess.Popen(['lpr', '-P', 'zebra'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p.communicate(input=print_str)
+        else:
+            import serial
+            ser = serial.Serial(SERIALPORT, BAUDRATE)
+            ser.bytesize = serial.EIGHTBITS
+            ser.parity = serial.PARITY_NONE
+            ser.stopbits = serial.STOPBITS_ONE
+            try:
+                ser.open()
+                if ser.isOpen():
+                    ser.write(print_str)
+            except Exception as err:
+                logger.debug('Error printing to serial: ')
+                logger.debug(err)
         return
  
 class HTTPRequestHandler(BaseHTTPRequestHandler):
