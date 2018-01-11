@@ -82,18 +82,18 @@ def save_exits(request):
         eh = ExistenceHistory(user = u, branch = b, action = 'bajas')
         if msg is not None and msg != '':
             eh.details = msg
+            logger.debug('msg: {}'.format(msg.encode('latin-1')))
         for d in details:
             p = Product.objects.get(slug = d['slug'].replace('-', ''))
             q = int(d['qty'])
-            try:
-                e = Existence.objects.get(branch = b, product = p)
-                #if(isFine and e.product.get_branch_transactions_count(b) >= q):
-                existence.append((p, 'fine', q, e))
-                #else:
-                #    isFine = False
-                #    if(e.product.get_branch_transactions_count(b) < q):
-                #        existence_errors.append((e.product.name, 'qty', e.product.get_branch_transactions_count(b)))
-            except Existence.DoesNotExist:
+            es = Existence.objects.filter(branch = b, product = p)
+            e = es[0]
+            existence.append((p, 'fine', q, e))
+            if len(es) > 1:
+                es_del = es[1:]
+                for e in es_del:
+                    e.delete()
+            else:
                 entries = ExistenceHistoryDetail.objects.filter(product = p, 
                                        existence__branch = b, existence__action__in = ['altas', 'alta_tras'])
                 if len(entries) > 0:
@@ -102,6 +102,7 @@ def save_exits(request):
                     isFine = False
                     existence_errors.append((p.name, 'exist', 0))
         if isFine:
+            logger.debug('Saving existence history')
             eh.save();
             for p in existence:
                 try:

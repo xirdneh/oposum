@@ -98,6 +98,9 @@ class InventoryEntry(models.Model):
     def get_adjustment_count(self):
         return reduce(lambda x, y: x + y.quantity, self.inventoryadjustment_set.all(), 0)
 
+    def __unicode__(self):
+        return '{0} - {1}'.format(self.product.slug, str(self.quantity))
+
 class InventoryAdjustment(models.Model):
     inventory_entry = models.ForeignKey(InventoryEntry)
     quantity = models.IntegerField(_("Quantity"), default = 0, blank = False, null = False)
@@ -137,11 +140,17 @@ class ProductTransfer(models.Model):
             products = products
         )
 
+    def __unicode__(self):
+        return '{0} -> {1}: {2} ({3})'.format(self.branch_from.slug, self.branch_to.slug,
+                                              self.status, self.date_time.isoformat())
+
 class ProductTransferDetail(models.Model):
     product = models.ForeignKey('products.Product')
     quantity = models.PositiveIntegerField(_("Quantity"), default=1)
     product_transfer = models.ForeignKey(ProductTransfer)
     date_time = models.DateTimeField(_("Date and Time"), auto_now_add=True)
+    def __unicode__(self):
+        return '{0} - {1}'.format(self.product.slug, str(self.quantity))
 
 class ProductTransferHistory(models.Model):
     date_time = models.DateTimeField(_("Date and Time"), auto_now=True)
@@ -149,3 +158,7 @@ class ProductTransferHistory(models.Model):
     status_changed = models.TextField(_("Status Changed"), max_length = 255, blank=False, null=False)
     product_transfer = models.ForeignKey(ProductTransfer)
     user = models.ForeignKey(User)
+    def __unicode__(self):
+        return '{0} -> {1}: {2} - > {3}'.format(self.product_transfer.branch_from.slug,
+                                                self.product_transfer.branch_to.slug,
+                                                self.status_previous, self.status_changed)

@@ -3,9 +3,10 @@ import logging, traceback
 
 logger = logging.getLogger(__name__)
 
-def ticket_text(sale):
+def ticket_text(sale, folio):
     date = sale.date_time.strftime('%d/%m/%Y')
-    sales_det_str = u' {{CR}} {{LF}} #  CODIGO/DESCRIPCION  PRECIO  CANTIDAD {{CR}} {{LF}} '.encode('latin-1')
+    sales_det_str = u' {{CR}} {{LF}} Fecha: ' + date + ' {{TAB}} Folio: ' + str(folio) + ' {{CR}} {{LF}} '
+    sales_det_str += u' {{CR}} {{LF}} #  CODIGO/DESCRIPCION  PRECIO  CANTIDAD {{CR}} {{LF}} '.encode('latin-1')
     cnt = 1
     for sd in sale.saledetails_set.all():
         sales_det_str += str(cnt) + ' {{TAB}} '

@@ -86,7 +86,7 @@ def save_sale(request):
             'ticket_pre': branch.ticket_pre.encode('unicode_escape'),
             'ticket_post': branch.ticket_post.encode('unicode_escape'),
             'sale': s.as_json(),
-            'ticket_str': sales_utils.ticket_text(s).encode('unicode_escape')
+            'ticket_str': sales_utils.ticket_text(s, folio).encode('unicode_escape')
         }
     return HttpResponse(json.dumps(d, encoding='latin-1'), content_type="application/json")
 
