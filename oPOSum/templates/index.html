@@ -14,11 +14,14 @@
                 <li><a href="/inventory/inventory-check">Inventarios</a></li>
                 <li><a href="/pos/sales">Ventas</a></li>
                 <li><a href="/clients/">Clientes</a></li>
-                <li><a href="/inventory/transfers/">Traspaso</a><li>
+                <li><a href="/inventory/transfers/">Traspaso</a></li>
             {% else %}
                 <li><a href="/pos/sales">Ventas</a></li>
                 <li><a href="/clients/">Clientes</a></li>
-                <li><a href="/inventory/transfers/">Traspaso</a><li>
+                <li><a href="/inventory/transfers/">Traspaso</a></li>
+            {% endif %}
+            {% if request.session.oficina %}
+                <li><a href="/pos/mock-sales">Ventas simuladas</a></li>
             {% endif %}
             <div id="user_branches"></div>
             {{ request.session.branch_selected }}

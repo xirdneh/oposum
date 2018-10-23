@@ -155,3 +155,9 @@ class POSFolio(models.Model):
     name = models.CharField(_("Name"), max_length=255)
     value = models.PositiveIntegerField(_("Value"))
     branch = models.ForeignKey(Branch, blank = True, null = True)
+
+    def __unicode__(self):
+        return "%s: %s" % (self.branch, self.name)
+
+    def __repr__(self):
+        return self.__unicode__()

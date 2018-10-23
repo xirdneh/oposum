@@ -2,6 +2,7 @@ db:
     image: postgres
     volumes:
         - /var/lib/postgresql/data
+        - ./.db:/db
     environment:
         - POSTGRES_USER=oposm_db_usr
         - POSTGRES_DB=oposm_db

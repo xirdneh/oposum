@@ -20,6 +20,8 @@ def login_user(request):
                         request.session['branch_selected'] = 'None'
                     else:
                         request.session['branch_selected'] = branches[0].pk
+                if [branch for branch in branches if branch.name.lower() == 'oficina']:
+                    request.session['oficina'] = True
                 return render(request, 'index.html')
             else:
                 return render(request, 'index.html', { 'message':u'usuario/contrasena no existente'})

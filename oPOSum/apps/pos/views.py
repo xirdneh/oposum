@@ -33,6 +33,9 @@ def get_pos_folio(branch, type):
 def sales(request):
     return render(request, 'pos/sales.html')
 
+def mock_sales(request):
+    return render(request, 'pos/mocok_sales.html')
+
 def save_sale(request):
     if request.is_ajax():
         post_json = json.loads(request.POST['data'])
@@ -88,6 +91,78 @@ def save_sale(request):
             'sale': s.as_json(),
             'ticket_str': sales_utils.ticket_text(s, folio).encode('unicode_escape')
         }
+    return HttpResponse(json.dumps(d, encoding='latin-1'), content_type="application/json")
+
+def mock_sale(request):
+    post_json = json.loads(request.POST['data'])
+    user = User.objects.get(username=post_json['user'])
+    branch = Branch.objects.get(pk = post_json['branch'])
+    details = post_json['details']
+    folio = get_pos_folio(branch,'ventas_mock')
+    pt = post_json['payment_type']
+    pa = Decimal(post_json['payment_amount'])
+    prods = []
+    total = Decimal("0.0")
+    if len(details) == 0:
+        return HttpResponse(
+            "{\"response\": \"error\", \"message\":\"Sale is empty\"}",
+            content_type="application/json",
+            status = 500
+        )
+    else: 
+        s = {
+            "branch": {"slug": branch.slug, "name": branch.name},
+            "user": user.username,
+            "date_time": datetime.now().strftime(
+                "%d/%m/%Y"
+            ),
+            "total_amount": Decimal(0),
+            "payment_method": pt,
+            "payment_amount": pa,
+            "folio_number": str(folio),
+            "ticket_pre": branch.ticket_pre.encode("unicode_escape"),
+            "ticket_post": branch.ticket_post.encode("unicode_escape"),
+            "sale_details": []
+        }
+    for detail in details:
+        total += Decimal(detail['qty']) * Decimal(detail['price'])
+        s["sale_details"].append({
+            "product": {
+                "name": detail["slug"],
+                "slug": detail["slug"].replace("-", ""),
+                "provider": "Provider",
+                "categories": [],
+                "regular_price": detail["price"],
+                "equivalency": "1.00",
+                "description": "Producto varios."
+            },
+            "quantity": str(detail["qty"]),
+            "over_price": str(detail["price"])
+        })
+        try:
+            p = Product.objects.get(slug = detail['slug'])
+            s["sale_details"][-1]["product"]["description"] = p.description
+            s["sale_details"][-1]["product"]["categories"] = [
+                {"name": c.name,
+                "slug": c.slug,
+                "type": c.type } for c in p.category.all()
+            ]
+        except Product.DoesNotExist:
+            pass
+    s["total_amount"] = total
+    d = {
+        'response': 'OK',
+        'folio': str(folio),
+        'ticket_pre': branch.ticket_pre.encode('unicode_escape'),
+        'ticket_post': branch.ticket_post.encode('unicode_escape'),
+        'sale': s,
+        'ticket_str': sales_utils.mock_ticket_text(
+            s,
+            folio
+        ).encode('unicode_escape')
+    }
+    s["payment_amount"] = str(s["payment_amount"])
+    s["total_amount"] = str(total)
     return HttpResponse(json.dumps(d, encoding='latin-1'), content_type="application/json")
 
 def get_sales_report(request, branch, urldatetime):
