@@ -1,7 +1,6 @@
 from oPOSum.apps.products.models import *
 from django.core.exceptions import ObjectDoesNotExist
 import sys
-import MySQLdb as mdb
 import logging
 from decimal import Decimal
 import pytz

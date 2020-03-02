@@ -144,7 +144,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
     'sekizai',
-    'reversion',
     'oPOSum.apps.authentication',
     'oPOSum.apps.branches',
     'oPOSum.apps.inventory',
