@@ -94,8 +94,7 @@ def save_exits(request):
                 for e in es_del:
                     e.delete()
             else:
-                entries = ExistenceHistoryDetail.objects.filter(product = p, 
-                                       existence__branch = b, existence__action__in = ['altas', 'alta_tras'])
+                entries = p.get_branch_transactions_count(b)
                 if len(entries) > 0:
                     isFine = True
                 else:
