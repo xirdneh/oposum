@@ -34,6 +34,13 @@ class LayawayManager(models.Manager):
     def get_layaways(self, branch, datestart, dateend):
         layaways = super(LayawayManager, self).get_queryset().filter(branch__slug = branch).filter(date_time__range=(datestart, dateend)).order_by('date_time')
 
+    def get_unpaid_layaways(self, branch, datestart=None, dateend=None):
+        layaways = [
+            layaway for layaway in 
+            super(LayawayManager, self).get_queryset().filter(branch__slug = branch).order_by('-date_time')
+            if layaway.get_debt_amount().compare(Decimal("0.0"))
+        ]
+        return layaways
 
 
 class Layaway(models.Model):
@@ -91,6 +98,26 @@ class Layaway(models.Model):
             branch = self.branch.slug,
             client = self.client.as_json(),
             products = [{'product': p.prod.as_json(),
+                         'qty': p.qty, 'price': str(p.price)} for p in self.layawayproduct_set.all()],
+            user = self.user.username,
+            date_time = dt.strftime('%Y-%m-%d %H:%M:%S'),
+            amount_to_pay = "${0:.2f}=".format(self.amount_to_pay),
+            total_debt_amount = "${0:.2f}=".format(self.get_debt_amount()),
+            date_end = self.get_date_end().strftime('%Y-%m-%d %H:%M:%S'),
+            type = self.type
+            )
+
+    def as_short_json(self):
+        tz = timezone('America/Monterrey')
+        dt = tz.normalize(self.date_time.astimezone(tz))        
+        return dict(
+            id = self.id,
+            branch = self.branch.slug,
+            client = {
+                'first_name': self.client.first_name.encode('latin-1', 'replace'),
+                'last_name': self.client.last_name.encode('latin-1', 'replace')
+                },
+            products = [{'product': p.prod.slug.encode('latin-1'),
                          'qty': p.qty, 'price': str(p.price)} for p in self.layawayproduct_set.all()],
             user = self.user.username,
             date_time = dt.strftime('%Y-%m-%d %H:%M:%S'),

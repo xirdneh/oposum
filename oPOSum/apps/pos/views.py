@@ -91,6 +91,8 @@ def save_sale(request):
             'sale': s.as_json(),
             'ticket_str': sales_utils.ticket_text(s, folio).encode('unicode_escape')
         }
+        log_sales.debug("Sale folio: %s, ip: %s", folio, 
+                    request.META.get('HTTP_X_FORWARDED_FOR', '') or request.META.get('REMOTE_ADDR', ''))
     return HttpResponse(json.dumps(d, encoding='latin-1'), content_type="application/json")
 
 def mock_sale(request):

@@ -15,6 +15,7 @@ def login_user(request):
                 branches = user.employee.branch.all()
                 request.session['user_branches'] = serializers.serialize("json", branches)
                 request.session['all_branches'] = serializers.serialize("json", Branch.objects.all())
+                request.session['oficina_branch'] = serializers.serialize("json", Branch.objects.filter(slug="oficina"))
                 if 'branch_selected' not in request.session:
                     if len(branches) > 1:
                         request.session['branch_selected'] = 'None'

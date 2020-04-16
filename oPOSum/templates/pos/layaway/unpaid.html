@@ -1,0 +1,48 @@
+<html>
+<head>
+<style>
+table, th, td {
+	border: 1px solid black;
+}
+</style>
+</head>
+<body>
+	<h1>Separados de {{branch.name}} </h1>
+	<table>
+            <tbody>
+		    <tr>
+			<th>Client</th>
+			<th>Articulos</th>
+			<th>Total</th>
+			<th>Deuda</th>
+			<th>Fecha de vencimiento</th>
+		    </tr>
+		    {% for l in layaways %}
+		<tr>
+		    <td>
+			    {{l.client.first_name}} {{l.client.last_name}}
+		    </td>
+		    <td>
+			    <table style="border:none">
+				    <tbody>
+			    {%for p in l.layawayproduct_set.all %}
+			    <tr style="border:none"><td style="border:none">{{p.prod.slug}}</td></tr>
+			    {% endfor %}
+				    </tbody>
+			    </table>
+		    </td>
+		    <td>
+			    {{l.amount_to_pay}}
+		    </td>
+		    <td>
+			    {{l.get_debt_amount}}
+		    </td>
+		    <td>
+			    {{l.get_date_end}}
+		    </td>
+		</tr>
+		{% endfor %}
+	    </tbody>
+	</table>
+</body>
+</html>

@@ -110,7 +110,7 @@
         balco.user_branches = {{ request.session.user_branches|safe}};
         balco.user_branches_selected = "{{ request.session.branch_selected}}";
         balco.print_branches_selector("user_branch", balco.user_branches);
-        balco.print_branches_selector("destiny_branch", {{ request.session.all_branches|safe}});
+        balco.print_branches_selector("destiny_branch", {{ request.session.oficina_branch|safe}});
         balco.select_init_branch("select_branches", balco.user_branches_selected);
         $('#destiny_branch').find('label').text('Destino:').attr('for', 'destiny_branch');
         $('#destiny_branch').find('select').attr('name', 'destiny_branch').attr('id', 'destiny_branch_select');

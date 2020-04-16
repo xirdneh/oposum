@@ -75,7 +75,12 @@ def save_layaway(request):
                         logger.error("There was an error substracting product in Layaway {0}: {1}".format(b.name, layaway.id))
                         logger.error("{0}".format(traceback.format_exc()))
                 layaway.update_amount_to_pay()
-                logger.debug("Layaway : {0} : {1} - {2}".format(layaway.id, layaway.get_debt_amount(), layaway.get_date_end()))
+                logger.debug("Layaway : {0} : {1} - {2} ({3})".format(
+                    layaway.id,
+                    layaway.get_debt_amount(),
+                    layaway.get_date_end(),
+                    request.META.get('HTTP_X_FORWARDED_FOR', '') or request.META.get('REMOTE_ADDR', '')
+                ))
                 msg.append("LayawaySaveSuccess")
                 if layaway.get_debt_amount() - Decimal(payment) >= Decimal(0.0):
                     lh = LayawayHistory(branch = b,
@@ -138,6 +143,8 @@ def save_payment(request):
         if error:
             return HttpResponse("{ \"status\": \"error\", \"message\": " + json.dumps(msg) + "}", content_type = "application/json")
         else:
+            logger.debug("Payment: %s, layaway: %s, client: %s (%s)", str(payment), str(layaway_id), str(client_id),
+                    request.META.get('HTTP_X_FORWARDED_FOR', '') or request.META.get('REMOTE_ADDR', ''))
             return HttpResponse("""{{ \"status\": \"ok\", 
                                      \"message\": {0},
                                      \"layaway\": {1},
@@ -148,3 +155,9 @@ def save_payment(request):
                                              json.dumps(lh.as_json()),
                                              json.dumps(layaway.branch.as_json())), content_type = "application/json")
     return render(request, '/layaway/index.html')
+
+def get_unpaid_layaways(request):
+    employee = pos_utils.get_employee(request)
+    b = Branch.objects.get(slug = employee.get_branches_slugs()[0])
+    layaways = Layaway.objects.get_unpaid_layaways(b.slug)
+    return render(request, 'pos/layaway/unpaid.html', {'layaways': layaways, 'branch': b})
