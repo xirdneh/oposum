@@ -1,7 +1,7 @@
 Django==1.10.6
 django-sekizai==0.9.0
 django-reversion==2.0.13
-Pillow==3.3.1
+Pillow==8.2.0
 reportlab==3.3.0
 pytz==2016.6.1
 psycopg2==2.6.2
